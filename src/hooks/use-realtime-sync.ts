@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-const TABLES = ["profiles", "habits", "habit_logs", "tasks", "goals", "milestones", "chat_messages"] as const;
+const TABLES = ["profiles", "tasks", "goals", "milestones", "chat_messages"] as const;
 
 /**
  * Subscribes to all user-scoped tables and invalidates React Query
