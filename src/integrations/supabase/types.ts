@@ -253,13 +253,39 @@ export type Database = {
         }
         Relationships: []
       }
+      task_completions: {
+        Row: {
+          completed_on: string
+          created_at: string
+          id: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_on?: string
+          created_at?: string
+          id?: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          completed_on?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
+          category: string
           completed: boolean
           completed_at: string | null
           created_at: string
           description: string | null
           due_date: string | null
+          estimated_minutes: number | null
           id: string
           last_completed_date: string | null
           priority: string
@@ -269,11 +295,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category?: string
           completed?: boolean
           completed_at?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
+          estimated_minutes?: number | null
           id?: string
           last_completed_date?: string | null
           priority?: string
@@ -283,11 +311,13 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category?: string
           completed?: boolean
           completed_at?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
+          estimated_minutes?: number | null
           id?: string
           last_completed_date?: string | null
           priority?: string
