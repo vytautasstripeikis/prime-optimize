@@ -25,7 +25,8 @@ export const sendCoachMessage = createServerFn({ method: "POST" })
       supabase.from("chat_messages").select("role, content").order("created_at", { ascending: false }).limit(10),
     ]);
 
-    const p = profile ?? {};
+    const p = (profile ?? {}) as Record<string, unknown>;
+    const v = (k: string) => (p[k] ?? "?") as string | number;
     const profileBlock = profile ? `Name: ${p.full_name ?? p.display_name ?? "User"}
 Age: ${p.age ?? "?"} | Gender: ${p.gender ?? "?"} | Height: ${p.height_cm ?? "?"}cm | Weight: ${p.weight_kg ?? "?"}kg
 Fitness: ${p.fitness_level ?? "?"} | Activity: ${p.activity_level ?? "?"}
