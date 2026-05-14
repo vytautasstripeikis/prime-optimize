@@ -38,6 +38,57 @@ export type Database = {
         }
         Relationships: []
       }
+      goals: {
+        Row: {
+          category: string
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          notes: string | null
+          priority: string
+          progress: number
+          status: string
+          target_date: string | null
+          timeframe: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          priority?: string
+          progress?: number
+          status?: string
+          target_date?: string | null
+          timeframe?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          notes?: string | null
+          priority?: string
+          progress?: number
+          status?: string
+          target_date?: string | null
+          timeframe?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       habit_logs: {
         Row: {
           count: number
@@ -109,32 +160,166 @@ export type Database = {
         }
         Relationships: []
       }
+      milestones: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          due_date: string | null
+          goal_id: string
+          id: string
+          sort_order: number
+          title: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          goal_id: string
+          id?: string
+          sort_order?: number
+          title: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          goal_id?: string
+          id?: string
+          sort_order?: number
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestones_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
+          activity_level: string | null
+          age: number | null
+          allergies: string | null
+          body_fat_pct: number | null
+          calorie_goal: number | null
+          career_goals: string | null
           created_at: string
+          daily_routine: string | null
+          diet_preferences: string[] | null
           display_name: string | null
+          financial_goals: string | null
+          fitness_goals: string | null
+          fitness_level: string | null
+          focus_times: string[] | null
+          full_name: string | null
+          gender: string | null
+          height_cm: number | null
           id: string
+          injuries: string | null
           level: number
+          medical_notes: string | null
+          motivation_style: string | null
+          onboarded: boolean
+          personality_style: string | null
+          productivity_level: number | null
+          sleep_end: string | null
+          sleep_goal_hours: number | null
+          sleep_start: string | null
           streak_days: number
+          stress_level: number | null
+          timezone: string | null
           updated_at: string
+          water_goal_ml: number | null
+          weight_kg: number | null
+          work_schedule: string | null
+          workout_preferences: string[] | null
           xp: number
         }
         Insert: {
+          activity_level?: string | null
+          age?: number | null
+          allergies?: string | null
+          body_fat_pct?: number | null
+          calorie_goal?: number | null
+          career_goals?: string | null
           created_at?: string
+          daily_routine?: string | null
+          diet_preferences?: string[] | null
           display_name?: string | null
+          financial_goals?: string | null
+          fitness_goals?: string | null
+          fitness_level?: string | null
+          focus_times?: string[] | null
+          full_name?: string | null
+          gender?: string | null
+          height_cm?: number | null
           id: string
+          injuries?: string | null
           level?: number
+          medical_notes?: string | null
+          motivation_style?: string | null
+          onboarded?: boolean
+          personality_style?: string | null
+          productivity_level?: number | null
+          sleep_end?: string | null
+          sleep_goal_hours?: number | null
+          sleep_start?: string | null
           streak_days?: number
+          stress_level?: number | null
+          timezone?: string | null
           updated_at?: string
+          water_goal_ml?: number | null
+          weight_kg?: number | null
+          work_schedule?: string | null
+          workout_preferences?: string[] | null
           xp?: number
         }
         Update: {
+          activity_level?: string | null
+          age?: number | null
+          allergies?: string | null
+          body_fat_pct?: number | null
+          calorie_goal?: number | null
+          career_goals?: string | null
           created_at?: string
+          daily_routine?: string | null
+          diet_preferences?: string[] | null
           display_name?: string | null
+          financial_goals?: string | null
+          fitness_goals?: string | null
+          fitness_level?: string | null
+          focus_times?: string[] | null
+          full_name?: string | null
+          gender?: string | null
+          height_cm?: number | null
           id?: string
+          injuries?: string | null
           level?: number
+          medical_notes?: string | null
+          motivation_style?: string | null
+          onboarded?: boolean
+          personality_style?: string | null
+          productivity_level?: number | null
+          sleep_end?: string | null
+          sleep_goal_hours?: number | null
+          sleep_start?: string | null
           streak_days?: number
+          stress_level?: number | null
+          timezone?: string | null
           updated_at?: string
+          water_goal_ml?: number | null
+          weight_kg?: number | null
+          work_schedule?: string | null
+          workout_preferences?: string[] | null
           xp?: number
         }
         Relationships: []
