@@ -14,7 +14,167 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      habit_logs: {
+        Row: {
+          count: number
+          created_at: string
+          habit_id: string
+          id: string
+          log_date: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          habit_id: string
+          id?: string
+          log_date?: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          habit_id?: string
+          id?: string
+          log_date?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "habit_logs_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      habits: {
+        Row: {
+          archived: boolean
+          category: string
+          color: string
+          created_at: string
+          icon: string
+          id: string
+          name: string
+          target_per_day: number
+          user_id: string
+        }
+        Insert: {
+          archived?: boolean
+          category?: string
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          name: string
+          target_per_day?: number
+          user_id: string
+        }
+        Update: {
+          archived?: boolean
+          category?: string
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+          target_per_day?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          level: number
+          streak_days: number
+          updated_at: string
+          xp: number
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          level?: number
+          streak_days?: number
+          updated_at?: string
+          xp?: number
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          level?: number
+          streak_days?: number
+          updated_at?: string
+          xp?: number
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
