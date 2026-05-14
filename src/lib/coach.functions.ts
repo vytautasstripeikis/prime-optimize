@@ -16,14 +16,36 @@ export const sendCoachMessage = createServerFn({ method: "POST" })
     // Gather context
     const today = new Date().toISOString().slice(0, 10);
     const since = new Date(Date.now() - 1000 * 60 * 60 * 24 * 14).toISOString().slice(0, 10);
-    const [{ data: habits }, { data: logs }, { data: tasks }, { data: history }] = await Promise.all([
+    const [{ data: profile }, { data: habits }, { data: logs }, { data: tasks }, { data: goals }, { data: history }] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabase.from("habits").select("name, category").eq("archived", false),
       supabase.from("habit_logs").select("habit_id, log_date").gte("log_date", since),
       supabase.from("tasks").select("title, priority, completed, due_date").order("created_at", { ascending: false }).limit(20),
+      supabase.from("goals").select("title, timeframe, priority, progress, status, target_date").eq("status", "active").limit(20),
       supabase.from("chat_messages").select("role, content").order("created_at", { ascending: false }).limit(10),
     ]);
 
+    const p = (profile ?? {}) as Record<string, unknown>;
+    const v = (k: string) => (p[k] ?? "?") as string | number;
+    const profileBlock = profile ? `Name: ${p.full_name ?? p.display_name ?? "User"}
+Age: ${p.age ?? "?"} | Gender: ${p.gender ?? "?"} | Height: ${p.height_cm ?? "?"}cm | Weight: ${p.weight_kg ?? "?"}kg
+Fitness: ${p.fitness_level ?? "?"} | Activity: ${p.activity_level ?? "?"}
+Sleep target: ${p.sleep_goal_hours ?? "?"}h (${p.sleep_start ?? "?"}–${p.sleep_end ?? "?"}) | Water: ${p.water_goal_ml ?? "?"}ml | Calories: ${p.calorie_goal ?? "?"}
+Stress: ${p.stress_level ?? "?"}/10 | Productivity: ${p.productivity_level ?? "?"}/10
+Motivation style: ${p.motivation_style ?? "?"} | Personality: ${p.personality_style ?? "?"}
+Allergies: ${p.allergies ?? "none"} | Injuries: ${p.injuries ?? "none"}
+Career goals: ${p.career_goals ?? "—"}
+Financial goals: ${p.financial_goals ?? "—"}
+Fitness goals: ${p.fitness_goals ?? "—"}
+Routine: ${p.daily_routine ?? "—"} | Schedule: ${p.work_schedule ?? "—"}` : "Profile not set.";
+
     const contextSummary = `Today: ${today}
+
+PROFILE:
+${profileBlock}
+
+ACTIVE GOALS: ${(goals ?? []).map((g) => `${g.title} [${g.timeframe}, ${g.priority}, ${g.progress}%${g.target_date ? `, due ${g.target_date}` : ""}]`).join("; ") || "none"}
+
 Active habits: ${(habits ?? []).map((h) => h.name).join(", ") || "none"}
 Habit completions (last 14 days): ${(logs ?? []).length}
 Open tasks: ${(tasks ?? []).filter((t) => !t.completed).map((t) => `${t.title} [${t.priority}]`).join("; ") || "none"}
@@ -32,7 +54,7 @@ Completed tasks recently: ${(tasks ?? []).filter((t) => t.completed).length}`;
     const messages = [
       {
         role: "system",
-        content: `You are Aurora, a warm, sharp, no-fluff AI life coach. Use the user's data to give personal, specific, actionable advice. Keep replies concise (under 180 words), use markdown, occasional emoji. Never invent data not in context.
+        content: `You are Aurora, a warm, sharp, no-fluff AI life optimization coach. Use the user's full profile, goals, habits and tasks to give deeply personal, specific, actionable advice — match their motivation style, respect their injuries/allergies, and tie suggestions back to their stated goals. Keep replies concise (under 220 words), use markdown, occasional emoji. Never invent data not in context.
 
 USER CONTEXT:
 ${contextSummary}`,

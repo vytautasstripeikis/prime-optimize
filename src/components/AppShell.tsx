@@ -1,14 +1,16 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { LayoutDashboard, ListTodo, Sparkles, Target, LogOut } from "lucide-react";
+import { LayoutDashboard, ListTodo, Sparkles, Target, LogOut, Trophy, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
 import type { ReactNode } from "react";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/goals", label: "Goals", icon: Trophy },
   { to: "/habits", label: "Habits", icon: Target },
   { to: "/tasks", label: "Tasks", icon: ListTodo },
   { to: "/coach", label: "AI Coach", icon: Sparkles },
+  { to: "/profile", label: "Profile", icon: User },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
