@@ -89,77 +89,6 @@ export type Database = {
         }
         Relationships: []
       }
-      habit_logs: {
-        Row: {
-          count: number
-          created_at: string
-          habit_id: string
-          id: string
-          log_date: string
-          user_id: string
-        }
-        Insert: {
-          count?: number
-          created_at?: string
-          habit_id: string
-          id?: string
-          log_date?: string
-          user_id: string
-        }
-        Update: {
-          count?: number
-          created_at?: string
-          habit_id?: string
-          id?: string
-          log_date?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "habit_logs_habit_id_fkey"
-            columns: ["habit_id"]
-            isOneToOne: false
-            referencedRelation: "habits"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      habits: {
-        Row: {
-          archived: boolean
-          category: string
-          color: string
-          created_at: string
-          icon: string
-          id: string
-          name: string
-          target_per_day: number
-          user_id: string
-        }
-        Insert: {
-          archived?: boolean
-          category?: string
-          color?: string
-          created_at?: string
-          icon?: string
-          id?: string
-          name: string
-          target_per_day?: number
-          user_id: string
-        }
-        Update: {
-          archived?: boolean
-          category?: string
-          color?: string
-          created_at?: string
-          icon?: string
-          id?: string
-          name?: string
-          target_per_day?: number
-          user_id?: string
-        }
-        Relationships: []
-      }
       milestones: {
         Row: {
           completed: boolean
@@ -332,7 +261,10 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          last_completed_date: string | null
           priority: string
+          recurrence: string
+          recurrence_days: number[]
           title: string
           user_id: string
         }
@@ -343,7 +275,10 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          last_completed_date?: string | null
           priority?: string
+          recurrence?: string
+          recurrence_days?: number[]
           title: string
           user_id: string
         }
@@ -354,7 +289,10 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          last_completed_date?: string | null
           priority?: string
+          recurrence?: string
+          recurrence_days?: number[]
           title?: string
           user_id?: string
         }
