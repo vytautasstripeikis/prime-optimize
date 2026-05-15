@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Repeat, ListTodo, Sparkles, TrendingUp, CheckCircle2 } from "lucide-react";
+import { Repeat, ListTodo, Sparkles, TrendingUp, CheckCircle2, Dumbbell, Apple, Droplet, Flame } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useProfile } from "@/lib/profile-hooks";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
@@ -22,17 +23,22 @@ function isDueToday(t: { recurrence: string; recurrence_days: number[] | null })
 
 function Dashboard() {
   const { user } = useAuth();
+  const { data: profile } = useProfile();
   const today = todayStr();
 
   const { data } = useQuery({
     queryKey: ["dashboard", user?.id],
     queryFn: async () => {
-      const { data: tasks } = await supabase
-        .from("tasks")
-        .select("id, title, completed, priority, recurrence, recurrence_days, last_completed_date, created_at")
-        .order("created_at", { ascending: false })
-        .limit(200);
-      return { tasks: tasks ?? [] };
+      const todayDate = todayStr();
+      const [{ data: tasks }, { data: workouts }, { data: foods }, { data: water }] = await Promise.all([
+        supabase.from("tasks")
+          .select("id, title, completed, priority, recurrence, recurrence_days, last_completed_date, created_at")
+          .order("created_at", { ascending: false }).limit(200),
+        supabase.from("workouts").select("id, name, performed_on, duration_minutes, calories_burned").eq("performed_on", todayDate),
+        supabase.from("food_logs").select("calories, protein_g, servings").eq("logged_on", todayDate),
+        supabase.from("water_logs").select("amount_ml").eq("logged_on", todayDate),
+      ]);
+      return { tasks: tasks ?? [], workouts: workouts ?? [], foods: foods ?? [], water: water ?? [] };
     },
   });
 
@@ -49,6 +55,15 @@ function Dashboard() {
     recurringPct * 0.6 + Math.min(40, openTasks.length === 0 ? 40 : tasksDoneToday * 10),
   );
 
+  const workoutsToday = data?.workouts ?? [];
+  const foods = data?.foods ?? [];
+  const water = data?.water ?? [];
+  const calToday = foods.reduce((s, f) => s + f.calories * Number(f.servings), 0);
+  const proteinToday = foods.reduce((s, f) => s + Number(f.protein_g) * Number(f.servings), 0);
+  const waterToday = water.reduce((s, w) => s + w.amount_ml, 0);
+  const calorieGoal = profile?.calorie_goal ?? 2200;
+  const waterGoal = profile?.water_goal_ml ?? 2500;
+
   return (
     <div className="max-w-6xl mx-auto px-5 md:px-8 py-6 md:py-10 space-y-6">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
@@ -63,6 +78,26 @@ function Dashboard() {
         <ScoreCard label="Routines" value={`${recurringDoneToday}/${recurring.length}`} icon={Repeat} />
         <ScoreCard label="Tasks Open" value={openTasks.length} icon={ListTodo} />
         <ScoreCard label="XP Earned" value={xp} suffix=" xp" icon={Sparkles} />
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <HealthCard
+          to="/workouts" label="Workouts today" icon={Dumbbell}
+          primary={`${workoutsToday.length}`}
+          secondary={workoutsToday.length ? `${workoutsToday.reduce((s, w) => s + (w.duration_minutes ?? 0), 0)} min` : "Log a session"}
+        />
+        <HealthCard
+          to="/nutrition" label="Calories" icon={Flame}
+          primary={`${Math.round(calToday)}`}
+          secondary={`${Math.round(proteinToday)}g protein · goal ${calorieGoal}`}
+          progress={Math.min(100, (calToday / calorieGoal) * 100)}
+        />
+        <HealthCard
+          to="/nutrition" label="Water" icon={Droplet}
+          primary={`${waterToday}`} suffix=" ml"
+          secondary={`goal ${waterGoal}ml`}
+          progress={Math.min(100, (waterToday / waterGoal) * 100)}
+        />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -145,5 +180,27 @@ function ScoreCard({ label, value, suffix, icon: Icon }: { label: string; value:
         {value}<span className="text-sm text-muted-foreground font-normal">{suffix}</span>
       </div>
     </motion.div>
+  );
+}
+
+function HealthCard({ to, label, icon: Icon, primary, suffix, secondary, progress }: { to: string; label: string; icon: React.ComponentType<{ className?: string }>; primary: string; suffix?: string; secondary: string; progress?: number }) {
+  return (
+    <Link to={to}>
+      <motion.div whileHover={{ y: -2 }} className="glass rounded-2xl p-5 h-full">
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs text-muted-foreground">{label}</span>
+          <Icon className="size-4 text-primary-glow" />
+        </div>
+        <div className="text-2xl font-display font-bold">
+          {primary}<span className="text-sm text-muted-foreground font-normal">{suffix}</span>
+        </div>
+        <div className="text-xs text-muted-foreground mb-2">{secondary}</div>
+        {progress != null && (
+          <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+            <div className="h-full bg-[image:var(--gradient-primary)]" style={{ width: `${progress}%` }} />
+          </div>
+        )}
+      </motion.div>
+    </Link>
   );
 }
