@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { LayoutDashboard, ListTodo, Sparkles, LogOut, Trophy, User, BarChart3 } from "lucide-react";
+import { LayoutDashboard, ListTodo, Sparkles, LogOut, Trophy, User, BarChart3, Dumbbell, Apple } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
 import type { ReactNode } from "react";
@@ -8,6 +8,8 @@ const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/goals", label: "Goals", icon: Trophy },
   { to: "/tasks", label: "Tasks", icon: ListTodo },
+  { to: "/workouts", label: "Workouts", icon: Dumbbell },
+  { to: "/nutrition", label: "Nutrition", icon: Apple },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/coach", label: "AI Coach", icon: Sparkles },
   { to: "/profile", label: "Profile", icon: User },
