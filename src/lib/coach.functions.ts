@@ -13,11 +13,18 @@ export const sendCoachMessage = createServerFn({ method: "POST" })
     await supabase.from("chat_messages").insert({ user_id: userId, role: "user", content: data.message });
 
     const today = new Date().toISOString().slice(0, 10);
-    const [{ data: profile }, { data: tasks }, { data: goals }, { data: history }] = await Promise.all([
+    const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+    const [
+      { data: profile }, { data: tasks }, { data: goals }, { data: history },
+      { data: workouts }, { data: foods }, { data: water },
+    ] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabase.from("tasks").select("title, priority, completed, due_date, recurrence, last_completed_date").order("created_at", { ascending: false }).limit(40),
       supabase.from("goals").select("title, timeframe, priority, progress, status, target_date").eq("status", "active").limit(20),
       supabase.from("chat_messages").select("role, content").order("created_at", { ascending: false }).limit(10),
+      supabase.from("workouts").select("name, type, intensity, duration_minutes, calories_burned, performed_on").gte("performed_on", sevenDaysAgo).order("performed_on", { ascending: false }),
+      supabase.from("food_logs").select("name, meal, calories, protein_g, carbs_g, fat_g, servings, logged_on").gte("logged_on", sevenDaysAgo).order("logged_on", { ascending: false }),
+      supabase.from("water_logs").select("amount_ml, logged_on").gte("logged_on", sevenDaysAgo),
     ]);
 
     const p = (profile ?? {}) as Record<string, unknown>;
@@ -48,13 +55,19 @@ Recurring tasks (habits): ${recurring.map((t) => `${t.title} [${t.recurrence}${t
 Open one-off tasks: ${oneOffs.filter((t) => !t.completed).map((t) => `${t.title} [${t.priority}]`).join("; ") || "none"}
 Completed recently: ${oneOffs.filter((t) => t.completed).length}`;
 
+    const todayFoods = (foods ?? []).filter((f) => f.logged_on === today);
+    const todayCal = todayFoods.reduce((s, f) => s + f.calories * Number(f.servings), 0);
+    const todayProtein = todayFoods.reduce((s, f) => s + Number(f.protein_g) * Number(f.servings), 0);
+    const todayWater = (water ?? []).filter((w) => w.logged_on === today).reduce((s, w) => s + w.amount_ml, 0);
+    const healthBlock = `\nWORKOUTS (7d): ${(workouts ?? []).map((w) => `${w.name} [${w.type}, ${w.duration_minutes}m, ${w.performed_on}]`).join("; ") || "none"}\nTODAY NUTRITION: ${Math.round(todayCal)} kcal, ${Math.round(todayProtein)}g protein, ${todayWater}ml water (goal ${p.water_goal_ml ?? 2500}ml, ${p.calorie_goal ?? 2200} kcal)`;
+
     const messages = [
       {
         role: "system",
         content: `You are Aurora, a warm, sharp, no-fluff AI life optimization coach. Use the user's full profile, goals and tasks to give deeply personal, specific, actionable advice — match their motivation style, respect their injuries/allergies, and tie suggestions back to their stated goals. Keep replies concise (under 220 words), use markdown, occasional emoji. Never invent data not in context.
 
 USER CONTEXT:
-${contextSummary}`,
+${contextSummary}${healthBlock}`,
       },
       ...((history ?? []).reverse().map((m) => ({ role: m.role, content: m.content }))),
     ];
