@@ -173,6 +173,42 @@ export type Database = {
         }
         Relationships: []
       }
+      journal_entries: {
+        Row: {
+          content: string
+          created_at: string
+          entry_date: string
+          id: string
+          mood: number | null
+          tags: string[]
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          mood?: number | null
+          tags?: string[]
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          mood?: number | null
+          tags?: string[]
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       milestones: {
         Row: {
           completed: boolean
@@ -216,6 +252,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mood_logs: {
+        Row: {
+          energy: number | null
+          id: string
+          logged_at: string
+          mood: number
+          notes: string | null
+          stress: number | null
+          tags: string[]
+          user_id: string
+        }
+        Insert: {
+          energy?: number | null
+          id?: string
+          logged_at?: string
+          mood: number
+          notes?: string | null
+          stress?: number | null
+          tags?: string[]
+          user_id: string
+        }
+        Update: {
+          energy?: number | null
+          id?: string
+          logged_at?: string
+          mood?: number
+          notes?: string | null
+          stress?: number | null
+          tags?: string[]
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -334,6 +403,42 @@ export type Database = {
           work_schedule?: string | null
           workout_preferences?: string[] | null
           xp?: number
+        }
+        Relationships: []
+      }
+      sleep_logs: {
+        Row: {
+          bedtime: string | null
+          created_at: string
+          duration_hours: number | null
+          id: string
+          notes: string | null
+          quality: number | null
+          slept_on: string
+          user_id: string
+          wake_time: string | null
+        }
+        Insert: {
+          bedtime?: string | null
+          created_at?: string
+          duration_hours?: number | null
+          id?: string
+          notes?: string | null
+          quality?: number | null
+          slept_on?: string
+          user_id: string
+          wake_time?: string | null
+        }
+        Update: {
+          bedtime?: string | null
+          created_at?: string
+          duration_hours?: number | null
+          id?: string
+          notes?: string | null
+          quality?: number | null
+          slept_on?: string
+          user_id?: string
+          wake_time?: string | null
         }
         Relationships: []
       }
