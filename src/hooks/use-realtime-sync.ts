@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 const TABLES = [
   "profiles", "tasks", "task_completions", "goals", "milestones", "chat_messages",
   "workouts", "exercises", "food_logs", "water_logs",
+  "sleep_logs", "mood_logs", "journal_entries",
 ] as const;
 
 /**
