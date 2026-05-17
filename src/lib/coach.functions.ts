@@ -17,6 +17,7 @@ export const sendCoachMessage = createServerFn({ method: "POST" })
     const [
       { data: profile }, { data: tasks }, { data: goals }, { data: history },
       { data: workouts }, { data: foods }, { data: water },
+      { data: sleep }, { data: moods },
     ] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
       supabase.from("tasks").select("title, priority, completed, due_date, recurrence, last_completed_date").order("created_at", { ascending: false }).limit(40),
@@ -25,6 +26,8 @@ export const sendCoachMessage = createServerFn({ method: "POST" })
       supabase.from("workouts").select("name, type, intensity, duration_minutes, calories_burned, performed_on").gte("performed_on", sevenDaysAgo).order("performed_on", { ascending: false }),
       supabase.from("food_logs").select("name, meal, calories, protein_g, carbs_g, fat_g, servings, logged_on").gte("logged_on", sevenDaysAgo).order("logged_on", { ascending: false }),
       supabase.from("water_logs").select("amount_ml, logged_on").gte("logged_on", sevenDaysAgo),
+      supabase.from("sleep_logs").select("slept_on, duration_hours, quality").gte("slept_on", sevenDaysAgo).order("slept_on", { ascending: false }),
+      supabase.from("mood_logs").select("logged_at, mood, energy, stress, tags").gte("logged_at", new Date(Date.now() - 7 * 86400000).toISOString()).order("logged_at", { ascending: false }),
     ]);
 
     const p = (profile ?? {}) as Record<string, unknown>;
@@ -59,7 +62,12 @@ Completed recently: ${oneOffs.filter((t) => t.completed).length}`;
     const todayCal = todayFoods.reduce((s, f) => s + f.calories * Number(f.servings), 0);
     const todayProtein = todayFoods.reduce((s, f) => s + Number(f.protein_g) * Number(f.servings), 0);
     const todayWater = (water ?? []).filter((w) => w.logged_on === today).reduce((s, w) => s + w.amount_ml, 0);
-    const healthBlock = `\nWORKOUTS (7d): ${(workouts ?? []).map((w) => `${w.name} [${w.type}, ${w.duration_minutes}m, ${w.performed_on}]`).join("; ") || "none"}\nTODAY NUTRITION: ${Math.round(todayCal)} kcal, ${Math.round(todayProtein)}g protein, ${todayWater}ml water (goal ${p.water_goal_ml ?? 2500}ml, ${p.calorie_goal ?? 2200} kcal)`;
+    const sleepArr = sleep ?? [];
+    const avgSleep = sleepArr.length ? (sleepArr.reduce((s, l) => s + Number(l.duration_hours ?? 0), 0) / sleepArr.length).toFixed(1) : "—";
+    const moodArr = moods ?? [];
+    const avgMood = moodArr.length ? (moodArr.reduce((s, m) => s + m.mood, 0) / moodArr.length).toFixed(1) : "—";
+    const recentMoodTags = Array.from(new Set(moodArr.flatMap((m) => m.tags ?? []))).slice(0, 8).join(", ") || "none";
+    const healthBlock = `\nWORKOUTS (7d): ${(workouts ?? []).map((w) => `${w.name} [${w.type}, ${w.duration_minutes}m, ${w.performed_on}]`).join("; ") || "none"}\nTODAY NUTRITION: ${Math.round(todayCal)} kcal, ${Math.round(todayProtein)}g protein, ${todayWater}ml water (goal ${p.water_goal_ml ?? 2500}ml, ${p.calorie_goal ?? 2200} kcal)\nSLEEP (7d): avg ${avgSleep}h across ${sleepArr.length} nights\nMOOD (7d): avg ${avgMood}/5 across ${moodArr.length} check-ins; recent tags: ${recentMoodTags}`;
 
     const messages = [
       {

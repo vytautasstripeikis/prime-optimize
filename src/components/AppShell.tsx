@@ -1,7 +1,12 @@
+import { useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { LayoutDashboard, ListTodo, Sparkles, LogOut, Trophy, User, BarChart3, Dumbbell, Apple } from "lucide-react";
+import {
+  LayoutDashboard, ListTodo, Sparkles, LogOut, Trophy, User, Dumbbell, Apple,
+  HeartPulse, Menu,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import type { ReactNode } from "react";
 
 const nav = [
@@ -10,14 +15,18 @@ const nav = [
   { to: "/tasks", label: "Tasks", icon: ListTodo },
   { to: "/workouts", label: "Workouts", icon: Dumbbell },
   { to: "/nutrition", label: "Nutrition", icon: Apple },
-  { to: "/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/wellness", label: "Wellness", icon: HeartPulse },
   { to: "/coach", label: "AI Coach", icon: Sparkles },
   { to: "/profile", label: "Profile", icon: User },
 ] as const;
 
+// Primary mobile bottom nav (4 items + More)
+const mobilePrimary = ["/dashboard", "/tasks", "/wellness", "/coach"];
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const { user, signOut } = useAuth();
+  const [moreOpen, setMoreOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex">
@@ -36,17 +45,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           {nav.map(({ to, label, icon: Icon }) => {
             const active = pathname.startsWith(to);
             return (
-              <Link
-                key={to}
-                to={to}
-                className="relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-white/5"
-              >
+              <Link key={to} to={to}
+                className="relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-white/5">
                 {active && (
-                  <motion.div
-                    layoutId="nav-pill"
+                  <motion.div layoutId="nav-pill"
                     className="absolute inset-0 rounded-xl bg-[image:var(--gradient-primary)] opacity-90"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }} />
                 )}
                 <Icon className={`size-4 relative z-10 ${active ? "text-primary-foreground" : "text-muted-foreground"}`} />
                 <span className={`relative z-10 ${active ? "text-primary-foreground" : ""}`}>{label}</span>
@@ -82,21 +86,42 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
 
-      {/* Mobile bottom nav */}
+      {/* Mobile bottom nav: 4 primary + More */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 glass px-2 py-2 flex justify-around">
-        {nav.map(({ to, label, icon: Icon }) => {
+        {nav.filter((n) => mobilePrimary.includes(n.to)).map(({ to, label, icon: Icon }) => {
           const active = pathname.startsWith(to);
           return (
-            <Link
-              key={to}
-              to={to}
-              className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl"
-            >
+            <Link key={to} to={to} className="flex flex-col items-center gap-1 px-2 py-1.5 rounded-xl flex-1">
               <Icon className={`size-5 ${active ? "text-primary-glow" : "text-muted-foreground"}`} />
               <span className={`text-[10px] ${active ? "text-primary-glow font-medium" : "text-muted-foreground"}`}>{label}</span>
             </Link>
           );
         })}
+        <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+          <SheetTrigger asChild>
+            <button className="flex flex-col items-center gap-1 px-2 py-1.5 rounded-xl flex-1">
+              <Menu className="size-5 text-muted-foreground" />
+              <span className="text-[10px] text-muted-foreground">More</span>
+            </button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="bg-card border-t border-border/50 rounded-t-3xl">
+            <SheetTitle className="font-display">All sections</SheetTitle>
+            <div className="grid grid-cols-3 gap-3 mt-5">
+              {nav.map(({ to, label, icon: Icon }) => {
+                const active = pathname.startsWith(to);
+                return (
+                  <Link key={to} to={to} onClick={() => setMoreOpen(false)}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-colors ${
+                      active ? "bg-primary/20 border-primary" : "border-white/10 hover:bg-white/5"
+                    }`}>
+                    <Icon className={`size-5 ${active ? "text-primary-glow" : "text-muted-foreground"}`} />
+                    <span className="text-xs">{label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </SheetContent>
+        </Sheet>
       </nav>
     </div>
   );
