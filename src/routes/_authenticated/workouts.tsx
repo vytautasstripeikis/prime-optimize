@@ -13,7 +13,7 @@ import {
   type Exercise, type MuscleGroup,
 } from "@/data/exercises";
 import { BodyMuscleMap, computeMuscleVolumes } from "@/components/BodyMuscleMap";
-import { STATUS_HEX, muscleStatus, scoreStatus, STATUS_SOFT } from "@/lib/score";
+import { STATUS_HEX, muscleStatus } from "@/lib/score";
 
 export const Route = createFileRoute("/_authenticated/workouts")({
   component: WorkoutsPage,
