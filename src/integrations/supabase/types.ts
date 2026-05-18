@@ -541,6 +541,60 @@ export type Database = {
         }
         Relationships: []
       }
+      workout_exercises: {
+        Row: {
+          created_at: string
+          custom_name: string | null
+          distance_km: number | null
+          duration_seconds: number | null
+          exercise_key: string | null
+          id: string
+          notes: string | null
+          primary_muscle: string | null
+          reps: number | null
+          secondary_muscles: string[]
+          sets: number | null
+          sort_order: number
+          user_id: string
+          weight_kg: number | null
+          workout_id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_name?: string | null
+          distance_km?: number | null
+          duration_seconds?: number | null
+          exercise_key?: string | null
+          id?: string
+          notes?: string | null
+          primary_muscle?: string | null
+          reps?: number | null
+          secondary_muscles?: string[]
+          sets?: number | null
+          sort_order?: number
+          user_id: string
+          weight_kg?: number | null
+          workout_id: string
+        }
+        Update: {
+          created_at?: string
+          custom_name?: string | null
+          distance_km?: number | null
+          duration_seconds?: number | null
+          exercise_key?: string | null
+          id?: string
+          notes?: string | null
+          primary_muscle?: string | null
+          reps?: number | null
+          secondary_muscles?: string[]
+          sets?: number | null
+          sort_order?: number
+          user_id?: string
+          weight_kg?: number | null
+          workout_id?: string
+        }
+        Relationships: []
+      }
       workouts: {
         Row: {
           calories_burned: number | null

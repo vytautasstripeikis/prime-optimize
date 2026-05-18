@@ -4,13 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 
 const TABLES = [
   "profiles", "tasks", "task_completions", "goals", "milestones", "chat_messages",
-  "workouts", "exercises", "food_logs", "water_logs",
+  "workouts", "workout_exercises", "exercises", "food_logs", "water_logs",
   "sleep_logs", "mood_logs", "journal_entries",
 ] as const;
 
 /**
- * Subscribes to all user-scoped tables and invalidates React Query
- * caches when remote changes happen — gives instant cross-device sync.
+ * Subscribes to all user-scoped tables and invalidates React Query caches.
  */
 export function useRealtimeSync(userId: string | undefined) {
   const qc = useQueryClient();
@@ -26,12 +25,11 @@ export function useRealtimeSync(userId: string | undefined) {
           qc.invalidateQueries({ queryKey: ["dashboard"] });
           qc.invalidateQueries({ queryKey: ["profile"] });
           qc.invalidateQueries({ queryKey: ["goals"] });
+          qc.invalidateQueries({ queryKey: ["muscle-map"] });
         },
       );
     }
     channel.subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [userId, qc]);
 }
