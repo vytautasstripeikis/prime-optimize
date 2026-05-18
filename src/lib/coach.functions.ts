@@ -88,9 +88,10 @@ ${contextSummary}${healthBlock}`,
 
     if (!res.ok) {
       const txt = await res.text();
+      console.error("[coach] AI gateway error", res.status, txt);
       if (res.status === 429) throw new Error("Rate limited. Try again in a moment.");
       if (res.status === 402) throw new Error("AI credits exhausted. Add credits in workspace settings.");
-      throw new Error(`AI error: ${txt.slice(0, 200)}`);
+      throw new Error("The AI coach is temporarily unavailable. Please try again.");
     }
 
     const json = await res.json();

@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { safeErrorMessage } from "@/lib/safe-error";
 import { useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles } from "lucide-react";
@@ -208,7 +209,7 @@ function OnboardingPage() {
       toast.success("Welcome aboard. Aurora is calibrated.");
       nav({ to: "/dashboard" });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Save failed");
+      toast.error(safeErrorMessage(e));
     } finally {
       setSaving(false);
     }

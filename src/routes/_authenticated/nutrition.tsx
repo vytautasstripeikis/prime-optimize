@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { safeErrorMessage } from "@/lib/safe-error";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -82,7 +83,7 @@ function NutritionPage() {
       setForm({ ...form, name: "", calories: 0, protein_g: 0, carbs_g: 0, fat_g: 0, servings: 1 });
       qc.invalidateQueries({ queryKey: ["food_logs"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e) => toast.error(safeErrorMessage(e)),
   });
 
   const removeFood = useMutation({

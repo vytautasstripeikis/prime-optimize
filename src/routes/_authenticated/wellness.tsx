@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { safeErrorMessage } from "@/lib/safe-error";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -76,7 +77,7 @@ function SleepTab() {
       user_id: user.id, slept_on: format(new Date(), "yyyy-MM-dd"),
       bedtime, wake_time: wake, duration_hours: duration, quality, notes: notes || null,
     });
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(safeErrorMessage(error));
     toast.success(`Logged ${duration.toFixed(1)}h sleep`);
     setNotes("");
     refetch();
@@ -175,7 +176,7 @@ function MoodTab() {
     const { error } = await supabase.from("mood_logs").insert({
       user_id: user.id, mood, energy, stress, tags, notes: notes || null,
     });
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(safeErrorMessage(error));
     toast.success("Check-in saved");
     setNotes(""); setTags([]);
     refetch();
@@ -279,7 +280,7 @@ function JournalTab() {
     const { error } = await supabase.from("journal_entries").insert({
       user_id: user.id, title: title || null, content, mood, tags: [],
     });
-    if (error) return toast.error(error.message);
+    if (error) return toast.error(safeErrorMessage(error));
     toast.success("Entry saved");
     setTitle(""); setContent(""); setMood(null);
     refetch();

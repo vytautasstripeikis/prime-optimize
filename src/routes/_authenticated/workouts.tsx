@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { safeErrorMessage } from "@/lib/safe-error";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -65,7 +66,7 @@ function WorkoutsPage() {
       setForm({ ...form, name: "", notes: "" });
       qc.invalidateQueries({ queryKey: ["workouts"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e) => toast.error(safeErrorMessage(e)),
   });
 
   const remove = useMutation({

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { safeErrorMessage } from "@/lib/safe-error";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Loader2, Save, User } from "lucide-react";
@@ -32,7 +33,7 @@ function ProfilePage() {
       await update.mutateAsync(form);
       toast.success("Profile saved.");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Save failed");
+      toast.error(safeErrorMessage(e));
     }
   };
 

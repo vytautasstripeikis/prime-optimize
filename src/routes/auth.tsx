@@ -1,4 +1,5 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { safeErrorMessage } from "@/lib/safe-error";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Loader2 } from "lucide-react";
@@ -44,7 +45,7 @@ function AuthPage() {
         nav({ to: "/dashboard" });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(safeErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -54,7 +55,7 @@ function AuthPage() {
     setLoading(true);
     const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/dashboard" });
     if (r.error) {
-      toast.error(r.error.message ?? "Google sign-in failed");
+      toast.error(safeErrorMessage(r.error, "Google sign-in failed"));
       setLoading(false);
     }
   };
