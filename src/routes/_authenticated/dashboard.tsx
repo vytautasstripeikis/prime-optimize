@@ -322,7 +322,7 @@ function DailyScoreRing({ score, status }: { score: number; status: "good" | "wa
 }
 
 function BreakdownTile({ label, value, icon: Icon, status, hint }: {
-  label: string; value: string; icon: React.ComponentType<{ className?: string }>;
+  label: string; value: string; icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   status: "good" | "warn" | "bad"; hint: string;
 }) {
   return (

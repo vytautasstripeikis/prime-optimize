@@ -405,7 +405,7 @@ function JournalTab() {
 }
 
 /* ---------------- Shared ---------------- */
-function StatTile({ icon: Icon, label, value, suffix, color }: { icon: React.ComponentType<{ className?: string }>; label: string; value: string; suffix?: string; color?: string }) {
+function StatTile({ icon: Icon, label, value, suffix, color }: { icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>; label: string; value: string; suffix?: string; color?: string }) {
   return (
     <div className="glass rounded-2xl p-4 md:p-5">
       <div className="flex items-center justify-between mb-2">
