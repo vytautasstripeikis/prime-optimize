@@ -31,10 +31,17 @@ interface Task {
 }
 
 const priorityColor = {
-  low: "text-emerald-400 bg-emerald-500/10",
-  medium: "text-amber-400 bg-amber-500/10",
-  high: "text-rose-400 bg-rose-500/10",
+  low: "text-success bg-success/15",
+  medium: "text-warning bg-warning/15",
+  high: "text-destructive bg-destructive/15",
 };
+const priorityLabel = { low: "Low", medium: "Medium", high: "High" } as const;
+const recurrenceLabel = { none: "One-Off", daily: "Daily", weekly: "Weekly" } as const;
+const CATEGORY_LABEL: Record<string, string> = {
+  general: "General", work: "Work", health: "Health",
+  learning: "Learning", personal: "Personal", finance: "Finance",
+};
+const filterLabel: Record<string, string> = { today: "Today", week: "Week", overdue: "Overdue", all: "All" };
 
 const CATEGORIES = ["general", "work", "health", "learning", "personal", "finance"] as const;
 const todayStr = () => new Date().toISOString().slice(0, 10);
@@ -191,14 +198,14 @@ function TasksPage() {
           <div className="flex gap-1.5">
             {(["low", "medium", "high"] as const).map((p) => (
               <button key={p} onClick={() => setPriority(p)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-medium capitalize transition ${
+                className={`px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-medium transition ${
                   priority === p ? priorityColor[p] + " ring-1 ring-current" : "glass text-muted-foreground"
-                }`}>{p}</button>
+                }`}>{priorityLabel[p]}</button>
             ))}
           </div>
           <button
             onClick={() => create.mutate()}
-            className="flex items-center gap-2 bg-[image:var(--gradient-primary)] text-primary-foreground px-5 py-3 rounded-xl font-medium"
+            className="flex items-center gap-2 bg-success hover:bg-success/90 text-success-foreground px-5 py-3 min-h-[48px] rounded-xl font-semibold"
           >
             <Plus className="size-4" /> Add
           </button>
@@ -209,9 +216,9 @@ function TasksPage() {
             <span className="text-xs text-muted-foreground">Repeat:</span>
             {(["none", "daily", "weekly"] as const).map((r) => (
               <button key={r} onClick={() => setRecurrence(r)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition ${
-                  recurrence === r ? "bg-[image:var(--gradient-primary)] text-primary-foreground" : "glass text-muted-foreground"
-                }`}>{r === "none" ? "One-off" : r}</button>
+                className={`px-3 py-2 min-h-[36px] rounded-lg text-xs font-medium transition ${
+                  recurrence === r ? "bg-success text-success-foreground" : "glass text-muted-foreground"
+                }`}>{recurrenceLabel[r]}</button>
             ))}
           </div>
           {recurrence === "weekly" && (
@@ -221,8 +228,8 @@ function TasksPage() {
                 return (
                   <button key={i}
                     onClick={() => setWeekDays((prev) => (on ? prev.filter((x) => x !== i) : [...prev, i].sort()))}
-                    className={`size-7 rounded-md text-[10px] font-semibold transition ${
-                      on ? "bg-primary text-primary-foreground" : "glass text-muted-foreground"
+                    className={`size-8 min-h-[36px] min-w-[36px] rounded-md text-[10px] font-semibold transition ${
+                      on ? "bg-success text-success-foreground" : "glass text-muted-foreground"
                     }`}>{d}</button>
                 );
               })}
@@ -231,9 +238,9 @@ function TasksPage() {
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="glass rounded-lg px-3 py-1.5 text-xs outline-none cursor-pointer"
+            className="glass rounded-lg px-3 py-2 min-h-[36px] text-xs outline-none cursor-pointer"
           >
-            {CATEGORIES.map((c) => <option key={c} value={c} className="bg-background capitalize">{c}</option>)}
+            {CATEGORIES.map((c) => <option key={c} value={c} className="bg-card">{CATEGORY_LABEL[c]}</option>)}
           </select>
           {recurrence === "none" && (
             <input
@@ -256,12 +263,12 @@ function TasksPage() {
       <div className="flex flex-wrap gap-2 mb-4">
         {(["today", "week", "overdue", "all"] as Filter[]).map((f) => (
           <button key={f} onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium capitalize transition flex items-center gap-1.5 ${
-              filter === f ? "bg-[image:var(--gradient-primary)] text-primary-foreground" : "glass text-muted-foreground"
+            className={`px-4 py-2 min-h-[40px] rounded-xl text-sm font-medium transition flex items-center gap-1.5 ${
+              filter === f ? "bg-success text-success-foreground" : "glass text-muted-foreground"
             }`}>
-            {f}
+            {filterLabel[f]}
             {f === "overdue" && overdueCount > 0 && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/30 text-rose-200">{overdueCount}</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/30 text-destructive">{overdueCount}</span>
             )}
           </button>
         ))}
@@ -269,10 +276,10 @@ function TasksPage() {
         <select
           value={filterCat}
           onChange={(e) => setFilterCat(e.target.value)}
-          className="glass rounded-xl px-3 py-2 text-sm outline-none cursor-pointer"
+          className="glass rounded-xl px-3 py-2 min-h-[40px] text-sm outline-none cursor-pointer"
         >
-          <option value="all" className="bg-background">All categories</option>
-          {CATEGORIES.map((c) => <option key={c} value={c} className="bg-background capitalize">{c}</option>)}
+          <option value="all" className="bg-card">All Categories</option>
+          {CATEGORIES.map((c) => <option key={c} value={c} className="bg-card">{CATEGORY_LABEL[c]}</option>)}
         </select>
       </div>
 
@@ -317,8 +324,14 @@ function TasksPage() {
       </section>
 
       {filtered.length === 0 && (
-        <div className="glass rounded-2xl p-10 text-center text-muted-foreground">
-          Nothing here. Try a different filter or add a task above.
+        <div className="glass rounded-2xl p-10 text-center">
+          <p className="text-sm text-muted-foreground mb-4">Nothing here. Try a different filter or add a task above.</p>
+          <button
+            onClick={() => (document.querySelector('input[placeholder*="get done"]') as HTMLInputElement | null)?.focus()}
+            className="bg-success hover:bg-success/90 text-success-foreground px-5 py-3 min-h-[48px] rounded-xl text-sm font-semibold inline-flex items-center gap-2"
+          >
+            <Plus className="size-4" /> Add Task
+          </button>
         </div>
       )}
     </div>
