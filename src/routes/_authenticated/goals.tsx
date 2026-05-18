@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { safeErrorMessage } from "@/lib/safe-error";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -55,7 +56,7 @@ function GoalsPage() {
       if (error) throw error;
     },
     onSuccess: () => { setCreating(false); qc.invalidateQueries({ queryKey: ["goals"] }); },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e) => toast.error(safeErrorMessage(e)),
   });
 
   const filtered = filter === "all" ? goals : goals.filter((g) => g.timeframe === filter);

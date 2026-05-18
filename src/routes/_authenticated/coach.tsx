@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { safeErrorMessage } from "@/lib/safe-error";
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -36,7 +37,7 @@ function CoachPage() {
       qc.invalidateQueries({ queryKey: ["coach-history"] });
       setTimeout(() => inputRef.current?.focus(), 50);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e) => toast.error(safeErrorMessage(e)),
   });
 
   useEffect(() => {

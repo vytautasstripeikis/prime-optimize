@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { safeErrorMessage } from "@/lib/safe-error";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
@@ -89,7 +90,7 @@ function TasksPage() {
       setTitle(""); setDueDate(""); setEstimate("");
       qc.invalidateQueries({ queryKey: ["tasks"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e) => toast.error(safeErrorMessage(e)),
   });
 
   const toggle = useMutation({
