@@ -100,8 +100,12 @@ function GoalsPage() {
 
       <div className="space-y-3">
         {filtered.length === 0 && !creating && (
-          <div className="glass rounded-2xl p-10 text-center text-muted-foreground">
-            No goals yet. Click <span className="text-primary-glow">New Goal</span> to add one.
+          <div className="glass rounded-2xl p-10 text-center">
+            <p className="text-sm text-muted-foreground mb-4">No goals yet. Set your first one to start tracking.</p>
+            <button onClick={() => setCreating(true)}
+              className="bg-success hover:bg-success/90 text-success-foreground px-5 py-3 min-h-[48px] rounded-xl text-sm font-semibold inline-flex items-center gap-2">
+              <Plus className="size-4" /> New Goal
+            </button>
           </div>
         )}
         <AnimatePresence>
