@@ -68,11 +68,11 @@ function GoalsPage() {
     <div className="max-w-5xl mx-auto px-5 md:px-8 py-6 md:py-10 space-y-6">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold flex items-center gap-3"><Target className="size-7 text-primary-glow" /> Goals</h1>
+          <h1 className="text-3xl md:text-4xl font-bold flex items-center gap-3"><Target className="size-7 text-success" /> Goals</h1>
           <p className="text-muted-foreground mt-1">Define them, break them down, ship them.</p>
         </div>
-        <button onClick={() => setCreating(true)} className="flex items-center gap-2 bg-[image:var(--gradient-primary)] text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-medium glow">
-          <Plus className="size-4" /> New goal
+        <button onClick={() => setCreating(true)} className="flex items-center gap-2 bg-success hover:bg-success/90 text-success-foreground px-4 py-3 min-h-[48px] rounded-xl text-sm font-semibold glow">
+          <Plus className="size-4" /> New Goal
         </button>
       </motion.div>
 
@@ -85,8 +85,8 @@ function GoalsPage() {
       <div className="flex gap-1.5 overflow-x-auto pb-1">
         {(["all", ...TIMEFRAMES] as const).map((t) => (
           <button key={t} onClick={() => setFilter(t)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-medium capitalize whitespace-nowrap transition ${
-              filter === t ? "bg-[image:var(--gradient-primary)] text-primary-foreground" : "glass text-muted-foreground"
+            className={`px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-medium whitespace-nowrap transition ${
+              filter === t ? "bg-success text-success-foreground" : "glass text-muted-foreground"
             }`}
           >{t === "all" ? "All" : tfLabel[t]}</button>
         ))}
@@ -100,8 +100,12 @@ function GoalsPage() {
 
       <div className="space-y-3">
         {filtered.length === 0 && !creating && (
-          <div className="glass rounded-2xl p-10 text-center text-muted-foreground">
-            No goals yet. Click <span className="text-primary-glow">New goal</span> to add one.
+          <div className="glass rounded-2xl p-10 text-center">
+            <p className="text-sm text-muted-foreground mb-4">No goals yet. Set your first one to start tracking.</p>
+            <button onClick={() => setCreating(true)}
+              className="bg-success hover:bg-success/90 text-success-foreground px-5 py-3 min-h-[48px] rounded-xl text-sm font-semibold inline-flex items-center gap-2">
+              <Plus className="size-4" /> New Goal
+            </button>
           </div>
         )}
         <AnimatePresence>
@@ -155,12 +159,12 @@ function CreateGoalCard({ onCancel, onCreate, pending }: {
         <div className="flex flex-wrap gap-2 items-center">
           <div className="flex gap-1">
             {TIMEFRAMES.map((t) => (
-              <button key={t} onClick={() => setTimeframe(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize ${timeframe === t ? "bg-primary/20 text-primary-glow ring-1 ring-primary/40" : "glass text-muted-foreground"}`}>{tfLabel[t]}</button>
+              <button key={t} onClick={() => setTimeframe(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize ${timeframe === t ? "bg-success/20 text-success ring-1 ring-success/40" : "glass text-muted-foreground"}`}>{tfLabel[t]}</button>
             ))}
           </div>
           <div className="flex gap-1">
             {(["low", "medium", "high"] as const).map((p) => (
-              <button key={p} onClick={() => setPriority(p)} className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize ${priority === p ? PRIORITY_COLOR[p] + " ring-1 ring-current" : "glass text-muted-foreground"}`}>{p}</button>
+              <button key={p} onClick={() => setPriority(p)} className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize ${priority === p ? PRIORITY_COLOR[p] + " ring-1 ring-current" : "glass text-muted-foreground"}`}>{p.charAt(0).toUpperCase() + p.slice(1)}</button>
             ))}
           </div>
           <input type="date" value={target_date} onChange={(e) => setTargetDate(e.target.value)} className="glass rounded-lg px-3 py-1.5 text-xs outline-none" />
