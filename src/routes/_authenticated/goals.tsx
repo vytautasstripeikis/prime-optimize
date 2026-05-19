@@ -68,11 +68,11 @@ function GoalsPage() {
     <div className="max-w-5xl mx-auto px-5 md:px-8 py-6 md:py-10 space-y-6">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold flex items-center gap-3"><Target className="size-7 text-primary-glow" /> Goals</h1>
+          <h1 className="text-3xl md:text-4xl font-bold flex items-center gap-3"><Target className="size-7 text-success" /> Goals</h1>
           <p className="text-muted-foreground mt-1">Define them, break them down, ship them.</p>
         </div>
-        <button onClick={() => setCreating(true)} className="flex items-center gap-2 bg-[image:var(--gradient-primary)] text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-medium glow">
-          <Plus className="size-4" /> New goal
+        <button onClick={() => setCreating(true)} className="flex items-center gap-2 bg-success hover:bg-success/90 text-success-foreground px-4 py-3 min-h-[48px] rounded-xl text-sm font-semibold glow">
+          <Plus className="size-4" /> New Goal
         </button>
       </motion.div>
 
