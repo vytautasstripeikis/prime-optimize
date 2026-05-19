@@ -85,8 +85,8 @@ function GoalsPage() {
       <div className="flex gap-1.5 overflow-x-auto pb-1">
         {(["all", ...TIMEFRAMES] as const).map((t) => (
           <button key={t} onClick={() => setFilter(t)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-medium capitalize whitespace-nowrap transition ${
-              filter === t ? "bg-[image:var(--gradient-primary)] text-primary-foreground" : "glass text-muted-foreground"
+            className={`px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-medium whitespace-nowrap transition ${
+              filter === t ? "bg-success text-success-foreground" : "glass text-muted-foreground"
             }`}
           >{t === "all" ? "All" : tfLabel[t]}</button>
         ))}
@@ -101,7 +101,7 @@ function GoalsPage() {
       <div className="space-y-3">
         {filtered.length === 0 && !creating && (
           <div className="glass rounded-2xl p-10 text-center text-muted-foreground">
-            No goals yet. Click <span className="text-primary-glow">New goal</span> to add one.
+            No goals yet. Click <span className="text-primary-glow">New Goal</span> to add one.
           </div>
         )}
         <AnimatePresence>
@@ -155,12 +155,12 @@ function CreateGoalCard({ onCancel, onCreate, pending }: {
         <div className="flex flex-wrap gap-2 items-center">
           <div className="flex gap-1">
             {TIMEFRAMES.map((t) => (
-              <button key={t} onClick={() => setTimeframe(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize ${timeframe === t ? "bg-primary/20 text-primary-glow ring-1 ring-primary/40" : "glass text-muted-foreground"}`}>{tfLabel[t]}</button>
+              <button key={t} onClick={() => setTimeframe(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize ${timeframe === t ? "bg-success/20 text-success ring-1 ring-success/40" : "glass text-muted-foreground"}`}>{tfLabel[t]}</button>
             ))}
           </div>
           <div className="flex gap-1">
             {(["low", "medium", "high"] as const).map((p) => (
-              <button key={p} onClick={() => setPriority(p)} className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize ${priority === p ? PRIORITY_COLOR[p] + " ring-1 ring-current" : "glass text-muted-foreground"}`}>{p}</button>
+              <button key={p} onClick={() => setPriority(p)} className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize ${priority === p ? PRIORITY_COLOR[p] + " ring-1 ring-current" : "glass text-muted-foreground"}`}>{p.charAt(0).toUpperCase() + p.slice(1)}</button>
             ))}
           </div>
           <input type="date" value={target_date} onChange={(e) => setTargetDate(e.target.value)} className="glass rounded-lg px-3 py-1.5 text-xs outline-none" />
