@@ -20,11 +20,6 @@ const TIMEFRAMES = ["daily", "weekly", "monthly", "short", "long"] as const;
 const tfLabel: Record<string, string> = {
   daily: "Daily", weekly: "Weekly", monthly: "Monthly", short: "Short-term", long: "Long-term",
 };
-const PRIORITY_COLOR: Record<string, string> = {
-  low: "text-emerald-400 bg-emerald-500/10",
-  medium: "text-amber-400 bg-amber-500/10",
-  high: "text-rose-400 bg-rose-500/10",
-};
 
 function GoalsPage() {
   const { user } = useAuth();
