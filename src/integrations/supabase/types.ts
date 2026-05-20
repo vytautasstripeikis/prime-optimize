@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      body_logs: {
+        Row: {
+          chest_cm: number | null
+          created_at: string
+          hips_cm: number | null
+          id: string
+          left_arm_cm: number | null
+          left_calf_cm: number | null
+          left_thigh_cm: number | null
+          logged_on: string
+          neck_cm: number | null
+          notes: string | null
+          right_arm_cm: number | null
+          right_calf_cm: number | null
+          right_thigh_cm: number | null
+          shoulders_cm: number | null
+          user_id: string
+          waist_cm: number | null
+          weight_kg: number | null
+        }
+        Insert: {
+          chest_cm?: number | null
+          created_at?: string
+          hips_cm?: number | null
+          id?: string
+          left_arm_cm?: number | null
+          left_calf_cm?: number | null
+          left_thigh_cm?: number | null
+          logged_on?: string
+          neck_cm?: number | null
+          notes?: string | null
+          right_arm_cm?: number | null
+          right_calf_cm?: number | null
+          right_thigh_cm?: number | null
+          shoulders_cm?: number | null
+          user_id: string
+          waist_cm?: number | null
+          weight_kg?: number | null
+        }
+        Update: {
+          chest_cm?: number | null
+          created_at?: string
+          hips_cm?: number | null
+          id?: string
+          left_arm_cm?: number | null
+          left_calf_cm?: number | null
+          left_thigh_cm?: number | null
+          logged_on?: string
+          neck_cm?: number | null
+          notes?: string | null
+          right_arm_cm?: number | null
+          right_calf_cm?: number | null
+          right_thigh_cm?: number | null
+          shoulders_cm?: number | null
+          user_id?: string
+          waist_cm?: number | null
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
@@ -34,6 +94,30 @@ export type Database = {
           created_at?: string
           id?: string
           role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_tips: {
+        Row: {
+          created_at: string
+          id: string
+          tip: string
+          tip_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tip: string
+          tip_date?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tip?: string
+          tip_date?: string
           user_id?: string
         }
         Relationships: []
@@ -553,6 +637,7 @@ export type Database = {
           primary_muscle: string | null
           reps: number | null
           secondary_muscles: string[]
+          set_number: number
           sets: number | null
           sort_order: number
           user_id: string
@@ -570,6 +655,7 @@ export type Database = {
           primary_muscle?: string | null
           reps?: number | null
           secondary_muscles?: string[]
+          set_number?: number
           sets?: number | null
           sort_order?: number
           user_id: string
@@ -587,6 +673,7 @@ export type Database = {
           primary_muscle?: string | null
           reps?: number | null
           secondary_muscles?: string[]
+          set_number?: number
           sets?: number | null
           sort_order?: number
           user_id?: string
