@@ -9,7 +9,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianG
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { safeErrorMessage } from "@/lib/safe-error";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_authenticated/body")({
   component: BodyPage,
@@ -193,12 +193,12 @@ function BodyLogger({ onClose, userId }: { onClose: () => void; userId: string }
 
   const save = useMutation({
     mutationFn: async () => {
-      const row: Record<string, unknown> = { user_id: userId, logged_on: date };
+      const row: TablesInsert<"body_logs"> = { user_id: userId, logged_on: date };
       let any = false;
       for (const m of MEASUREMENTS) {
         const v = values[m.key];
         if (v != null && v !== "") {
-          row[m.key] = Number(v);
+          (row as Record<string, unknown>)[m.key] = Number(v);
           any = true;
         }
       }
