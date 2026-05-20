@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Check, Plus, Trash2, Flag, Repeat, CalendarDays, Flame, Clock, Tag, AlertTriangle,
+  Check, Plus, Trash2, Repeat, CalendarDays, Flame, Clock, Tag, AlertTriangle,
 } from "lucide-react";
 import { format, isBefore, isToday, isThisWeek, parseISO } from "date-fns";
 import { toast } from "sonner";
@@ -30,12 +30,6 @@ interface Task {
   estimated_minutes: number | null;
 }
 
-const priorityColor = {
-  low: "text-success bg-success/15",
-  medium: "text-warning bg-warning/15",
-  high: "text-destructive bg-destructive/15",
-};
-const priorityLabel = { low: "Low", medium: "Medium", high: "High" } as const;
 const recurrenceLabel = { none: "One-Off", daily: "Daily", weekly: "Weekly" } as const;
 const CATEGORY_LABEL: Record<string, string> = {
   general: "General", work: "Work", health: "Health",
@@ -59,7 +53,6 @@ function TasksPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [title, setTitle] = useState("");
-  const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
   const [recurrence, setRecurrence] = useState<"none" | "daily" | "weekly">("none");
   const [weekDays, setWeekDays] = useState<number[]>([1, 2, 3, 4, 5]);
   const [category, setCategory] = useState<string>("general");
@@ -84,7 +77,6 @@ function TasksPage() {
       const { error } = await supabase.from("tasks").insert({
         user_id: user!.id,
         title: title.trim(),
-        priority,
         recurrence,
         recurrence_days: recurrence === "weekly" ? weekDays : [],
         category,
@@ -195,14 +187,6 @@ function TasksPage() {
             placeholder={recurrence === "none" ? "What needs to get done?" : "New routine, e.g. Read 20 pages"}
             className="flex-1 glass rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary"
           />
-          <div className="flex gap-1.5">
-            {(["low", "medium", "high"] as const).map((p) => (
-              <button key={p} onClick={() => setPriority(p)}
-                className={`px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-medium transition ${
-                  priority === p ? priorityColor[p] + " ring-1 ring-current" : "glass text-muted-foreground"
-                }`}>{priorityLabel[p]}</button>
-            ))}
-          </div>
           <button
             onClick={() => create.mutate()}
             className="flex items-center gap-2 bg-success hover:bg-success/90 text-success-foreground px-5 py-3 min-h-[48px] rounded-xl font-semibold"
@@ -386,11 +370,7 @@ function TaskRow({ task, onToggle, onRemove }: { task: Task; onToggle: () => voi
         <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded-md bg-violet-500/10 text-violet-300">
           <Repeat className="inline size-2.5 mr-1" />Routine
         </span>
-      ) : (
-        <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded-md ${priorityColor[task.priority]}`}>
-          <Flag className="inline size-2.5 mr-1" />{task.priority}
-        </span>
-      )}
+      ) : null}
       <button onClick={onRemove} className="p-1.5 rounded-lg hover:bg-white/5 text-muted-foreground">
         <Trash2 className="size-4" />
       </button>

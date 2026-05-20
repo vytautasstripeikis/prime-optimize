@@ -20,11 +20,6 @@ const TIMEFRAMES = ["daily", "weekly", "monthly", "short", "long"] as const;
 const tfLabel: Record<string, string> = {
   daily: "Daily", weekly: "Weekly", monthly: "Monthly", short: "Short-term", long: "Long-term",
 };
-const PRIORITY_COLOR: Record<string, string> = {
-  low: "text-emerald-400 bg-emerald-500/10",
-  medium: "text-amber-400 bg-amber-500/10",
-  high: "text-rose-400 bg-rose-500/10",
-};
 
 function GoalsPage() {
   const { user } = useAuth();
@@ -138,7 +133,6 @@ function CreateGoalCard({ onCancel, onCreate, pending }: {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [timeframe, setTimeframe] = useState<typeof TIMEFRAMES[number]>("monthly");
-  const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
   const [target_date, setTargetDate] = useState("");
 
   const submit = () => {
@@ -146,7 +140,7 @@ function CreateGoalCard({ onCancel, onCreate, pending }: {
     onCreate({
       title: title.trim(),
       description: description.trim() || null,
-      timeframe, priority,
+      timeframe,
       target_date: target_date || null,
     });
   };
@@ -160,11 +154,6 @@ function CreateGoalCard({ onCancel, onCreate, pending }: {
           <div className="flex gap-1">
             {TIMEFRAMES.map((t) => (
               <button key={t} onClick={() => setTimeframe(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize ${timeframe === t ? "bg-success/20 text-success ring-1 ring-success/40" : "glass text-muted-foreground"}`}>{tfLabel[t]}</button>
-            ))}
-          </div>
-          <div className="flex gap-1">
-            {(["low", "medium", "high"] as const).map((p) => (
-              <button key={p} onClick={() => setPriority(p)} className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize ${priority === p ? PRIORITY_COLOR[p] + " ring-1 ring-current" : "glass text-muted-foreground"}`}>{p.charAt(0).toUpperCase() + p.slice(1)}</button>
             ))}
           </div>
           <input type="date" value={target_date} onChange={(e) => setTargetDate(e.target.value)} className="glass rounded-lg px-3 py-1.5 text-xs outline-none" />
@@ -256,7 +245,6 @@ function GoalCard({ goal, milestones }: { goal: Goal; milestones: Milestone[] })
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className={`font-display font-semibold text-base ${isComplete ? "line-through text-muted-foreground" : ""}`}>{goal.title}</h3>
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{tfLabel[goal.timeframe] ?? goal.timeframe}</span>
-            <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-md ${PRIORITY_COLOR[goal.priority] ?? ""}`}>{goal.priority}</span>
             {goal.target_date && <span className="text-[10px] text-muted-foreground flex items-center gap-1"><Calendar className="size-3" />{goal.target_date}</span>}
           </div>
           {goal.description && <p className="text-sm text-muted-foreground mt-1">{goal.description}</p>}

@@ -18,7 +18,6 @@ type Form = {
   gender: string;
   height_cm: string;
   weight_kg: string;
-  body_fat_pct: string;
   fitness_level: string;
   activity_level: string;
   workout_preferences: string[];
@@ -28,8 +27,6 @@ type Form = {
   sleep_start: string;
   sleep_end: string;
   sleep_goal_hours: string;
-  water_goal_ml: string;
-  calorie_goal: string;
   stress_level: number;
   productivity_level: number;
   career_goals: string;
@@ -43,12 +40,11 @@ type Form = {
 };
 
 const initial: Form = {
-  full_name: "", age: "", gender: "", height_cm: "", weight_kg: "", body_fat_pct: "",
+  full_name: "", age: "", gender: "", height_cm: "", weight_kg: "",
   fitness_level: "intermediate", activity_level: "moderate",
   workout_preferences: [], diet_preferences: [],
   allergies: "", injuries: "",
   sleep_start: "23:00", sleep_end: "07:00", sleep_goal_hours: "8",
-  water_goal_ml: "2500", calorie_goal: "2200",
   stress_level: 5, productivity_level: 5,
   career_goals: "", financial_goals: "", fitness_goals: "",
   daily_routine: "", work_schedule: "",
@@ -98,10 +94,9 @@ function OnboardingPage() {
       subtitle: "Helps the AI calibrate workout and recovery advice.",
       render: (
         <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <Field label="Height (cm)"><input className={inputCls} type="number" value={form.height_cm} onChange={(e) => set("height_cm", e.target.value)} /></Field>
             <Field label="Weight (kg)"><input className={inputCls} type="number" value={form.weight_kg} onChange={(e) => set("weight_kg", e.target.value)} /></Field>
-            <Field label="Body fat %"><input className={inputCls} type="number" value={form.body_fat_pct} onChange={(e) => set("body_fat_pct", e.target.value)} /></Field>
           </div>
           <Field label="Fitness level">
             <PillGroup options={["beginner", "intermediate", "advanced", "elite"]} value={form.fitness_level} onChange={(v) => set("fitness_level", v)} />
@@ -124,11 +119,10 @@ function OnboardingPage() {
             <Field label="Sleep start"><input className={inputCls} type="time" value={form.sleep_start} onChange={(e) => set("sleep_start", e.target.value)} /></Field>
             <Field label="Wake up"><input className={inputCls} type="time" value={form.sleep_end} onChange={(e) => set("sleep_end", e.target.value)} /></Field>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             <Field label="Sleep goal (h)"><input className={inputCls} type="number" step="0.5" value={form.sleep_goal_hours} onChange={(e) => set("sleep_goal_hours", e.target.value)} /></Field>
-            <Field label="Water (ml)"><input className={inputCls} type="number" step="100" value={form.water_goal_ml} onChange={(e) => set("water_goal_ml", e.target.value)} /></Field>
-            <Field label="Calories"><input className={inputCls} type="number" step="50" value={form.calorie_goal} onChange={(e) => set("calorie_goal", e.target.value)} /></Field>
           </div>
+          <p className="text-xs text-muted-foreground">Calorie and water goals are calculated automatically from your body data.</p>
           <Field label="Diet preferences">
             <ChipGroup options={["Omnivore", "Vegetarian", "Vegan", "Keto", "Paleo", "Mediterranean", "Pescatarian", "Halal", "Kosher", "Gluten-free"]} value={form.diet_preferences} onToggle={(v) => toggle("diet_preferences", v)} />
           </Field>
@@ -181,7 +175,6 @@ function OnboardingPage() {
         gender: form.gender || null,
         height_cm: num(form.height_cm),
         weight_kg: num(form.weight_kg),
-        body_fat_pct: num(form.body_fat_pct),
         fitness_level: form.fitness_level,
         activity_level: form.activity_level,
         workout_preferences: form.workout_preferences,
@@ -191,8 +184,6 @@ function OnboardingPage() {
         sleep_start: form.sleep_start || null,
         sleep_end: form.sleep_end || null,
         sleep_goal_hours: num(form.sleep_goal_hours),
-        water_goal_ml: num(form.water_goal_ml) as number | null,
-        calorie_goal: num(form.calorie_goal) as number | null,
         stress_level: form.stress_level,
         productivity_level: form.productivity_level,
         career_goals: form.career_goals || null,

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
   LayoutDashboard, ListTodo, Sparkles, LogOut, Trophy, User, Dumbbell, Apple,
-  HeartPulse, Menu, Moon,
+  HeartPulse, Menu, Moon, Ruler,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useAuth } from "@/lib/auth-context";
@@ -17,6 +17,7 @@ const nav = [
   { to: "/coach", label: "AI Coach", icon: Sparkles },
   { to: "/goals", label: "Goals", icon: Trophy },
   { to: "/nutrition", label: "Nutrition", icon: Apple },
+  { to: "/body", label: "Body", icon: Ruler },
   { to: "/profile", label: "Profile", icon: User },
 ] as const;
 
