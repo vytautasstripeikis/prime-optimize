@@ -250,7 +250,6 @@ function GoalCard({ goal, milestones }: { goal: Goal; milestones: Milestone[] })
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className={`font-display font-semibold text-base ${isComplete ? "line-through text-muted-foreground" : ""}`}>{goal.title}</h3>
             <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{tfLabel[goal.timeframe] ?? goal.timeframe}</span>
-            <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-md ${PRIORITY_COLOR[goal.priority] ?? ""}`}>{goal.priority}</span>
             {goal.target_date && <span className="text-[10px] text-muted-foreground flex items-center gap-1"><Calendar className="size-3" />{goal.target_date}</span>}
           </div>
           {goal.description && <p className="text-sm text-muted-foreground mt-1">{goal.description}</p>}
