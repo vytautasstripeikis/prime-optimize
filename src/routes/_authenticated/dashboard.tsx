@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import {
@@ -38,6 +38,7 @@ function computeDayScore(args: {
 function Dashboard() {
   const { user } = useAuth();
   const { data: profile } = useProfile();
+  const qc = useQueryClient();
   const today = todayStr();
   const since14 = format(subDays(new Date(), 13), "yyyy-MM-dd");
   const isSunday = new Date().getDay() === 0;
@@ -119,11 +120,42 @@ function Dashboard() {
   const avgScoreWeek = Math.round(week7.reduce((s, d) => s + d.score, 0) / 7);
   const workoutsThisWeek = workoutsAll.filter((w) => w.performed_on >= format(subDays(new Date(), 6), "yyyy-MM-dd")).length;
 
+  const displayName: string =
+    (profile as { full_name?: string; display_name?: string } | undefined)?.full_name?.trim() ||
+    (profile as { full_name?: string; display_name?: string } | undefined)?.display_name?.trim() ||
+    user?.email?.split("@")[0] ||
+    "there";
+
+  const completeRoutine = useMutation({
+    mutationFn: async (taskId: string) => {
+      const { error: ce } = await supabase
+        .from("task_completions")
+        .insert({ task_id: taskId, user_id: user!.id, completed_on: today });
+      if (ce && !String(ce.message).toLowerCase().includes("duplicate")) throw ce;
+      const { error: ue } = await supabase
+        .from("tasks")
+        .update({ last_completed_date: today })
+        .eq("id", taskId);
+      if (ue) throw ue;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard"] }),
+    onError: (e) => toast.error(safeErrorMessage(e)),
+  });
+
+  const completeTask = useMutation({
+    mutationFn: async (taskId: string) => {
+      const { error } = await supabase.from("tasks").update({ completed: true }).eq("id", taskId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard"] }),
+    onError: (e) => toast.error(safeErrorMessage(e)),
+  });
+
   return (
     <div className="max-w-6xl mx-auto px-5 md:px-8 py-6 md:py-10 space-y-6">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl md:text-4xl font-bold">
-          Hey, <span className={STATUS_TEXT[status]}>{user?.email?.split("@")[0]}</span>
+        <h1 className="text-3xl md:text-4xl font-bold text-white">
+          Hey, {displayName}
         </h1>
         <p className="text-muted-foreground mt-1">Here's how today is shaping up.</p>
       </motion.div>
@@ -215,14 +247,16 @@ function Dashboard() {
             <Empty>No routines for today. <Link to="/tasks" className="text-success">Create one →</Link></Empty>
           ) : (
             <div className="space-y-2">
-              {recurring.slice(0, 8).map((t) => {
+              {recurring.slice(0, 5).map((t) => {
                 const done = t.last_completed_date === today;
                 return (
-                  <div key={t.id} className="flex items-center gap-3 py-2">
-                    <div className={`size-2.5 rounded-full ${done ? "bg-success" : "bg-warning"}`} />
-                    <span className={`flex-1 text-sm ${done ? "" : "text-muted-foreground"}`}>{t.title}</span>
-                    {done && <CheckCircle2 className="size-3.5 text-success" />}
-                  </div>
+                  <button key={t.id} onClick={() => !done && completeRoutine.mutate(t.id)} disabled={done}
+                    className="w-full flex items-center gap-3 py-2 px-2 min-h-[48px] rounded-xl hover:bg-white/5 transition text-left disabled:opacity-70">
+                    <span className={`size-6 rounded-lg grid place-items-center shrink-0 transition ${done ? "bg-success" : "border-2 border-warning/60 hover:border-success"}`}>
+                      {done && <CheckCircle2 className="size-3.5 text-success-foreground" />}
+                    </span>
+                    <span className={`flex-1 text-sm ${done ? "line-through text-muted-foreground" : ""}`}>{t.title}</span>
+                  </button>
                 );
               })}
             </div>
@@ -234,11 +268,12 @@ function Dashboard() {
             <Empty>All clear ✨</Empty>
           ) : (
             <div className="space-y-2">
-              {openTasks.slice(0, 6).map((t) => (
-                <div key={t.id} className="flex items-center gap-3 py-1.5">
-                  <div className="size-1.5 rounded-full bg-success" />
+              {openTasks.slice(0, 5).map((t) => (
+                <button key={t.id} onClick={() => completeTask.mutate(t.id)}
+                  className="w-full flex items-center gap-3 py-2 px-2 min-h-[48px] rounded-xl hover:bg-white/5 transition text-left">
+                  <span className="size-6 rounded-lg grid place-items-center shrink-0 border-2 border-success/60 hover:border-success hover:bg-success/10" />
                   <span className="flex-1 text-sm truncate">{t.title}</span>
-                </div>
+                </button>
               ))}
             </div>
           )}
