@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useProfile } from "@/lib/profile-hooks";
+import { computeDailyNeeds } from "@/lib/needs";
 
 export const Route = createFileRoute("/_authenticated/nutrition")({
   component: NutritionPage,
@@ -69,6 +70,17 @@ function NutritionPage() {
     },
   });
 
+  const { data: bodyLogs = [] } = useQuery({
+    queryKey: ["body_logs", user?.id, "needs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("body_logs").select("weight_kg, logged_on")
+        .order("logged_on", { ascending: false }).limit(30);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const addFood = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("not signed in");
@@ -116,16 +128,22 @@ function NutritionPage() {
     },
     { cal: 0, p: 0, c: 0, f: 0 },
   );
-  const calorieGoal = profile?.calorie_goal ?? 2200;
+  const needs = computeDailyNeeds(profile ?? null, bodyLogs);
+  const calorieGoal = needs.calories ?? profile?.calorie_goal ?? 2200;
   const waterMl = water.reduce((s, w) => s + w.amount_ml, 0);
-  const waterGoal = profile?.water_goal_ml ?? 2500;
+  const waterGoal = needs.waterMl ?? profile?.water_goal_ml ?? 2500;
+  const autoCalc = needs.calories != null;
 
   return (
     <div className="max-w-5xl mx-auto px-5 md:px-8 py-6 md:py-10 space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-bold">Nutrition</h1>
-          <p className="text-muted-foreground mt-1">Fuel your body. Hit your macros.</p>
+          <p className="text-muted-foreground mt-1">
+            {autoCalc
+              ? `Goals auto-calculated from your body data · ${calorieGoal} kcal / ${waterGoal}ml`
+              : "Add your weight, height, and age in Profile to auto-calculate your goals."}
+          </p>
         </div>
         <button
           onClick={() => setOpen(true)}
