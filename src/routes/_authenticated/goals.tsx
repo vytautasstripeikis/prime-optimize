@@ -138,7 +138,6 @@ function CreateGoalCard({ onCancel, onCreate, pending }: {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [timeframe, setTimeframe] = useState<typeof TIMEFRAMES[number]>("monthly");
-  const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
   const [target_date, setTargetDate] = useState("");
 
   const submit = () => {
@@ -146,7 +145,7 @@ function CreateGoalCard({ onCancel, onCreate, pending }: {
     onCreate({
       title: title.trim(),
       description: description.trim() || null,
-      timeframe, priority,
+      timeframe,
       target_date: target_date || null,
     });
   };
@@ -160,11 +159,6 @@ function CreateGoalCard({ onCancel, onCreate, pending }: {
           <div className="flex gap-1">
             {TIMEFRAMES.map((t) => (
               <button key={t} onClick={() => setTimeframe(t)} className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize ${timeframe === t ? "bg-success/20 text-success ring-1 ring-success/40" : "glass text-muted-foreground"}`}>{tfLabel[t]}</button>
-            ))}
-          </div>
-          <div className="flex gap-1">
-            {(["low", "medium", "high"] as const).map((p) => (
-              <button key={p} onClick={() => setPriority(p)} className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize ${priority === p ? PRIORITY_COLOR[p] + " ring-1 ring-current" : "glass text-muted-foreground"}`}>{p.charAt(0).toUpperCase() + p.slice(1)}</button>
             ))}
           </div>
           <input type="date" value={target_date} onChange={(e) => setTargetDate(e.target.value)} className="glass rounded-lg px-3 py-1.5 text-xs outline-none" />
