@@ -61,10 +61,7 @@ interface WorkoutExercise {
 interface PendingExercise {
   exercise: Exercise | null;
   customName: string;
-  sets: number;
-  reps: number;
-  weight: number;
-  duration: number;
+  sets: { reps: number; weight: number; duration: number }[];
 }
 
 function WorkoutsPage() {
@@ -298,19 +295,22 @@ function WorkoutLogger({ onClose, userId }: { onClose: () => void; userId: strin
         .from("workouts").insert({ ...form, user_id: userId }).select("id").single();
       if (error || !w) throw error ?? new Error("Save failed");
       if (exercises.length > 0) {
-        const rows = exercises.map((e, i) => ({
-          user_id: userId,
-          workout_id: w.id,
-          exercise_key: e.exercise?.key ?? null,
-          custom_name: e.exercise ? null : e.customName,
-          primary_muscle: e.exercise?.primary ?? null,
-          secondary_muscles: e.exercise?.secondary ?? [],
-          sets: e.sets || null,
-          reps: e.reps || null,
-          weight_kg: e.weight || null,
-          duration_seconds: e.duration || null,
-          sort_order: i,
-        }));
+        const rows = exercises.flatMap((e, i) =>
+          e.sets.map((s, si) => ({
+            user_id: userId,
+            workout_id: w.id,
+            exercise_key: e.exercise?.key ?? null,
+            custom_name: e.exercise ? null : e.customName,
+            primary_muscle: e.exercise?.primary ?? null,
+            secondary_muscles: e.exercise?.secondary ?? [],
+            sets: e.sets.length,
+            set_number: si + 1,
+            reps: s.reps || null,
+            weight_kg: s.weight || null,
+            duration_seconds: s.duration || null,
+            sort_order: i,
+          }))
+        );
         const { error: e2 } = await supabase.from("workout_exercises").insert(rows);
         if (e2) throw e2;
       }
@@ -327,17 +327,28 @@ function WorkoutLogger({ onClose, userId }: { onClose: () => void; userId: strin
   const addExercise = (ex: Exercise) => {
     setExercises((p) => [...p, {
       exercise: ex, customName: "",
-      sets: 3, reps: 10, weight: 0, duration: 0,
+      sets: Array.from({ length: 3 }, () => ({ reps: 10, weight: 0, duration: 0 })),
     }]);
     setPickerOpen(false);
   };
   const addCustom = () => {
     setExercises((p) => [...p, {
-      exercise: null, customName: "", sets: 3, reps: 10, weight: 0, duration: 0,
+      exercise: null, customName: "",
+      sets: Array.from({ length: 3 }, () => ({ reps: 10, weight: 0, duration: 0 })),
     }]);
   };
   const updateExercise = (i: number, patch: Partial<PendingExercise>) =>
     setExercises((p) => p.map((e, idx) => idx === i ? { ...e, ...patch } : e));
+  const updateSet = (i: number, si: number, patch: Partial<{ reps: number; weight: number; duration: number }>) =>
+    setExercises((p) => p.map((e, idx) => idx === i
+      ? { ...e, sets: e.sets.map((s, j) => j === si ? { ...s, ...patch } : s) }
+      : e));
+  const addSet = (i: number) => setExercises((p) => p.map((e, idx) => idx === i
+    ? { ...e, sets: [...e.sets, { ...(e.sets[e.sets.length - 1] ?? { reps: 10, weight: 0, duration: 0 }) }] }
+    : e));
+  const removeSet = (i: number, si: number) => setExercises((p) => p.map((e, idx) => idx === i
+    ? { ...e, sets: e.sets.filter((_, j) => j !== si) }
+    : e));
   const removeExercise = (i: number) => setExercises((p) => p.filter((_, idx) => idx !== i));
 
   return (
@@ -446,20 +457,50 @@ function WorkoutLogger({ onClose, userId }: { onClose: () => void; userId: strin
                     </button>
                   </div>
                   {(e.exercise?.mode === "duration") ? (
-                    <input type="number" placeholder="Seconds" value={e.duration || ""}
-                      onChange={(ev) => updateExercise(i, { duration: +ev.target.value })}
-                      className="w-full bg-white/5 rounded-lg px-3 py-2 text-xs" />
+                    <div className="space-y-1.5">
+                      {e.sets.map((s, si) => (
+                        <div key={si} className="flex items-center gap-2">
+                          <span className="text-[10px] text-muted-foreground w-10">Set {si + 1}</span>
+                          <input type="number" placeholder="Seconds" value={s.duration || ""}
+                            onChange={(ev) => updateSet(i, si, { duration: +ev.target.value })}
+                            className="flex-1 bg-white/5 rounded-lg px-3 py-2 text-xs" />
+                          {e.sets.length > 1 && (
+                            <button onClick={() => removeSet(i, si)} className="p-1.5 text-muted-foreground hover:text-destructive">
+                              <X className="size-3" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <button onClick={() => addSet(i)}
+                        className="text-[11px] text-success hover:text-success/80 flex items-center gap-1 mt-1">
+                        <Plus className="size-3" /> Add Set
+                      </button>
+                    </div>
                   ) : (
-                    <div className="grid grid-cols-3 gap-2">
-                      <input type="number" placeholder="Sets" value={e.sets || ""}
-                        onChange={(ev) => updateExercise(i, { sets: +ev.target.value })}
-                        className="bg-white/5 rounded-lg px-3 py-2 text-xs" />
-                      <input type="number" placeholder="Reps" value={e.reps || ""}
-                        onChange={(ev) => updateExercise(i, { reps: +ev.target.value })}
-                        className="bg-white/5 rounded-lg px-3 py-2 text-xs" />
-                      <input type="number" step="0.5" placeholder="kg" value={e.weight || ""}
-                        onChange={(ev) => updateExercise(i, { weight: +ev.target.value })}
-                        className="bg-white/5 rounded-lg px-3 py-2 text-xs" />
+                    <div className="space-y-1.5">
+                      <div className="grid grid-cols-[2.5rem_1fr_1fr_1.5rem] gap-2 items-center text-[10px] text-muted-foreground px-1">
+                        <span>Set</span><span>Reps</span><span>Weight (kg)</span><span></span>
+                      </div>
+                      {e.sets.map((s, si) => (
+                        <div key={si} className="grid grid-cols-[2.5rem_1fr_1fr_1.5rem] gap-2 items-center">
+                          <span className="text-xs text-muted-foreground text-center">{si + 1}</span>
+                          <input type="number" placeholder="10" value={s.reps || ""}
+                            onChange={(ev) => updateSet(i, si, { reps: +ev.target.value })}
+                            className="bg-white/5 rounded-lg px-3 py-2 text-xs" />
+                          <input type="number" step="0.5" placeholder="0" value={s.weight || ""}
+                            onChange={(ev) => updateSet(i, si, { weight: +ev.target.value })}
+                            className="bg-white/5 rounded-lg px-3 py-2 text-xs" />
+                          {e.sets.length > 1 ? (
+                            <button onClick={() => removeSet(i, si)} className="p-1 text-muted-foreground hover:text-destructive">
+                              <X className="size-3" />
+                            </button>
+                          ) : <span />}
+                        </div>
+                      ))}
+                      <button onClick={() => addSet(i)}
+                        className="text-[11px] text-success hover:text-success/80 flex items-center gap-1 mt-1">
+                        <Plus className="size-3" /> Add Set
+                      </button>
                     </div>
                   )}
                 </div>
