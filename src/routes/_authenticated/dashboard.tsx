@@ -463,3 +463,32 @@ function TodaysPlanCard() {
     </div>
   );
 }
+
+function DailyTipStrip() {
+  const fetchTip = useServerFn(getDailyTip);
+  const [tip, setTip] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let alive = true;
+    fetchTip()
+      .then((r) => { if (alive) setTip(r.tip); })
+      .catch(() => { if (alive) setTip(null); })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [fetchTip]);
+  if (loading) {
+    return (
+      <div className="glass rounded-2xl px-4 py-3 flex items-center gap-3">
+        <Loader2 className="size-4 text-success animate-spin shrink-0" />
+        <span className="text-sm text-muted-foreground">Aurora is reading your data…</span>
+      </div>
+    );
+  }
+  if (!tip) return null;
+  return (
+    <div className="glass rounded-2xl px-4 py-3 flex items-start gap-3 border-l-2 border-success">
+      <Sparkles className="size-4 text-success shrink-0 mt-0.5" />
+      <span className="text-sm leading-relaxed">{tip}</span>
+    </div>
+  );
+}
