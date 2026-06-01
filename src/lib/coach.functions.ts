@@ -169,3 +169,35 @@ ${summaryPrompt(ctx)}`,
     const plan = await callGateway(messages);
     return { plan: plan || "Could not generate a plan right now.", dailyScore: ctx.dailyScore };
   });
+
+export const getDailyTip = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const today = new Date().toISOString().slice(0, 10);
+
+    // Return cached tip for today if it exists
+    const { data: cached } = await supabase
+      .from("daily_tips")
+      .select("tip")
+      .eq("user_id", userId)
+      .eq("tip_date", today)
+      .maybeSingle();
+    if (cached?.tip) return { tip: cached.tip as string, cached: true };
+
+    const ctx = await buildUserContext(supabase, userId);
+    const messages = [
+      {
+        role: "system",
+        content: `You are Aurora. Produce ONE punchy, data-driven daily tip (≤180 chars, plain text, no markdown, no emoji). Tie it to the user's weakest signal right now — Red sleep, weak muscle group, missed habit, low daily score, or overdue goal. Address the user directly. No preamble.
+
+CONTEXT:
+${summaryPrompt(ctx)}`,
+      },
+      { role: "user", content: "Give me today's tip." },
+    ];
+    const raw = await callGateway(messages);
+    const tip = (raw || "Stay consistent — small reps compound.").trim().slice(0, 280);
+    await supabase.from("daily_tips").insert({ user_id: userId, tip_date: today, tip });
+    return { tip, cached: false };
+  });
