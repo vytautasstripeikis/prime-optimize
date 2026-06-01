@@ -13,7 +13,9 @@ import { useAuth } from "@/lib/auth-context";
 import { useProfile } from "@/lib/profile-hooks";
 import { scoreStatus, STATUS_HEX, STATUS_TEXT, sleepStatus } from "@/lib/score";
 import { getTodaysPlan } from "@/lib/coach.functions";
+import { getDailyTip } from "@/lib/coach.functions";
 import { useState } from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { safeErrorMessage } from "@/lib/safe-error";
 
@@ -175,6 +177,9 @@ function Dashboard() {
 
       {/* AI Today's Plan */}
       <TodaysPlanCard />
+
+      {/* AI Daily Tip */}
+      <DailyTipStrip />
 
       {/* Weekly performance graph */}
       <Panel title="Weekly Performance">
@@ -455,6 +460,35 @@ function TodaysPlanCard() {
           Tap <span className="text-success font-medium">Generate</span> to get a personal AI plan based on yesterday's score, sleep, and weak spots.
         </div>
       )}
+    </div>
+  );
+}
+
+function DailyTipStrip() {
+  const fetchTip = useServerFn(getDailyTip);
+  const [tip, setTip] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    let alive = true;
+    fetchTip()
+      .then((r) => { if (alive) setTip(r.tip); })
+      .catch(() => { if (alive) setTip(null); })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [fetchTip]);
+  if (loading) {
+    return (
+      <div className="glass rounded-2xl px-4 py-3 flex items-center gap-3">
+        <Loader2 className="size-4 text-success animate-spin shrink-0" />
+        <span className="text-sm text-muted-foreground">Aurora is reading your data…</span>
+      </div>
+    );
+  }
+  if (!tip) return null;
+  return (
+    <div className="glass rounded-2xl px-4 py-3 flex items-start gap-3 border-l-2 border-success">
+      <Sparkles className="size-4 text-success shrink-0 mt-0.5" />
+      <span className="text-sm leading-relaxed">{tip}</span>
     </div>
   );
 }
