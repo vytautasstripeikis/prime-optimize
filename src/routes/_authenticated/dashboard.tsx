@@ -13,7 +13,9 @@ import { useAuth } from "@/lib/auth-context";
 import { useProfile } from "@/lib/profile-hooks";
 import { scoreStatus, STATUS_HEX, STATUS_TEXT, sleepStatus } from "@/lib/score";
 import { getTodaysPlan } from "@/lib/coach.functions";
+import { getDailyTip } from "@/lib/coach.functions";
 import { useState } from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import { safeErrorMessage } from "@/lib/safe-error";
 
@@ -175,6 +177,9 @@ function Dashboard() {
 
       {/* AI Today's Plan */}
       <TodaysPlanCard />
+
+      {/* AI Daily Tip */}
+      <DailyTipStrip />
 
       {/* Weekly performance graph */}
       <Panel title="Weekly Performance">
