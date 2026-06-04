@@ -146,7 +146,9 @@ function Dashboard() {
 
   const completeTask = useMutation({
     mutationFn: async (taskId: string) => {
-      const { error } = await supabase.from("tasks").update({ completed: true }).eq("id", taskId);
+      const { error } = await supabase.from("tasks")
+        .update({ completed: true, completed_at: new Date().toISOString() })
+        .eq("id", taskId);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard"] }),
@@ -269,17 +271,22 @@ function Dashboard() {
         </Panel>
 
         <Panel title="Open Tasks">
-          {openTasks.length === 0 ? (
+          {visibleTasks.length === 0 ? (
             <Empty>All clear ✨</Empty>
           ) : (
             <div className="space-y-2">
-              {openTasks.slice(0, 5).map((t) => (
-                <button key={t.id} onClick={() => completeTask.mutate(t.id)}
-                  className="w-full flex items-center gap-3 py-2 px-2 min-h-[48px] rounded-xl hover:bg-white/5 transition text-left">
-                  <span className="size-6 rounded-lg grid place-items-center shrink-0 border-2 border-success/60 hover:border-success hover:bg-success/10" />
-                  <span className="flex-1 text-sm truncate">{t.title}</span>
-                </button>
-              ))}
+              {visibleTasks.slice(0, 8).map((t) => {
+                const done = !!t.completed;
+                return (
+                  <button key={t.id} onClick={() => !done && completeTask.mutate(t.id)} disabled={done}
+                    className={`w-full flex items-center gap-3 py-2 px-2 min-h-[48px] rounded-xl text-left transition ${done ? "opacity-60" : "hover:bg-white/5"}`}>
+                    <span className={`size-6 rounded-lg grid place-items-center shrink-0 transition ${done ? "bg-success" : "border-2 border-success/60 hover:border-success hover:bg-success/10"}`}>
+                      {done && <CheckCircle2 className="size-3.5 text-success-foreground" />}
+                    </span>
+                    <span className={`flex-1 text-sm truncate ${done ? "line-through text-muted-foreground" : ""}`}>{t.title}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
         </Panel>
