@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Ruler, Trash2, X, Scale } from "lucide-react";
+import { Plus, Ruler, Trash2, X, Scale, Activity, Flame, Droplet } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { toast } from "sonner";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
@@ -11,8 +11,6 @@ import { useAuth } from "@/lib/auth-context";
 import { safeErrorMessage } from "@/lib/safe-error";
 import { useProfile } from "@/lib/profile-hooks";
 import { computeDailyNeeds } from "@/lib/needs";
-import { Activity, Flame, Droplet } from "lucide-react";
-import { toast as sonnerToast } from "sonner";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_authenticated/body")({
@@ -193,7 +191,7 @@ function BodyPage() {
           </ol>
         </div>
         <button
-          onClick={() => sonnerToast.info("Google Fit sync setup is coming — your developer needs to add Google OAuth credentials before this can be enabled.")}
+          onClick={() => toast.info("Google Fit sync setup is coming — Google OAuth credentials need to be added before this can be enabled.")}
           className="mt-3 w-full md:w-auto bg-success/30 text-success-foreground/80 px-4 py-3 min-h-[48px] rounded-xl text-sm font-semibold inline-flex items-center justify-center gap-2 cursor-not-allowed"
         >
           <Activity className="size-4" /> Connect Google Fit — Setup required
