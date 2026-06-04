@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import {
-  Repeat, ListTodo, Sparkles, CheckCircle2, Dumbbell, Apple,
+  Repeat, ListTodo, Sparkles, CheckCircle2, Dumbbell,
   Droplet, Flame, Moon, Target, AlertTriangle, Calendar, Loader2,
 } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
