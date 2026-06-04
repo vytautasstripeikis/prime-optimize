@@ -231,12 +231,12 @@ function Dashboard() {
 
       {/* Quick health tiles */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <QuickTile to="/nutrition" label="Calories" icon={Flame}
-          primary={`${Math.round(calToday)}`} secondary={`${Math.round(proteinToday)}g protein`}
-          progress={Math.min(100, (calToday / calorieGoal) * 100)} />
-        <QuickTile to="/nutrition" label="Water" icon={Droplet}
-          primary={`${waterToday}`} suffix=" ml" secondary={`Goal ${waterGoal}ml`}
-          progress={Math.min(100, (waterToday / waterGoal) * 100)} />
+        <QuickTile to="/body" label="Calories" icon={Flame}
+          primary={needs.calories != null ? `${needs.calories}` : "—"}
+          secondary="Auto target / day" />
+        <QuickTile to="/body" label="Water" icon={Droplet}
+          primary={needs.waterMl != null ? `${needs.waterMl}` : "—"} suffix=" ml"
+          secondary="Auto target / day" />
         <QuickTile to="/workouts" label="Workouts" icon={Dumbbell}
           primary={`${workoutsAll.filter((w) => w.performed_on === today).length}`}
           secondary={workoutToday ? "Today done" : "None yet"} />
