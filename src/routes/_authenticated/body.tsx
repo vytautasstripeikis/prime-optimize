@@ -149,6 +149,57 @@ function BodyPage() {
         </div>
       </div>
 
+      {/* Auto-calculated daily targets (read-only) */}
+      <div className="glass rounded-3xl p-5 md:p-6">
+        <h2 className="font-display font-semibold text-lg mb-1">Daily Targets</h2>
+        <p className="text-xs text-muted-foreground mb-4">Calculated automatically from your latest weight, height, age, and activity level.</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl bg-white/[0.02] border border-border/40 p-4">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground"><Flame className="size-3.5 text-success" />Calories</div>
+            <div className="text-2xl font-display font-bold mt-1">{needs.calories ?? "—"}<span className="text-xs text-muted-foreground font-normal"> kcal</span></div>
+          </div>
+          <div className="rounded-2xl bg-white/[0.02] border border-border/40 p-4">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground"><Droplet className="size-3.5 text-success" />Water</div>
+            <div className="text-2xl font-display font-bold mt-1">{needs.waterMl ?? "—"}<span className="text-xs text-muted-foreground font-normal"> ml</span></div>
+          </div>
+        </div>
+        {needs.missing.length > 0 && (
+          <p className="text-xs text-warning mt-3">Add {needs.missing.join(", ")} to unlock precise targets.</p>
+        )}
+      </div>
+
+      {/* Connect Device — Mi Band / Google Fit */}
+      <div className="glass rounded-3xl p-5 md:p-6">
+        <div className="flex items-start gap-3 mb-3">
+          <div className="size-10 rounded-2xl bg-success/15 grid place-items-center shrink-0">
+            <Activity className="size-5 text-success" />
+          </div>
+          <div className="flex-1">
+            <h2 className="font-display font-semibold text-lg">Connect Device</h2>
+            <p className="text-xs text-muted-foreground">Import steps, heart rate, sleep, and workouts from your Xiaomi Mi Band.</p>
+          </div>
+        </div>
+        <div className="rounded-2xl bg-white/[0.02] border border-border/40 p-4 text-sm space-y-2">
+          <p className="font-medium">Xiaomi Mi Band → Mi Fitness → Google Fit → Aurora</p>
+          <p className="text-muted-foreground text-xs leading-relaxed">
+            Mi Fitness does not have a public API. The simplest pipeline is to enable Google Fit
+            sync inside the Mi Fitness app, then connect Google Fit here. Aurora will pull the
+            last 7 days of steps, heart rate, sleep sessions, and workouts on every sync.
+          </p>
+          <ol className="text-xs text-muted-foreground list-decimal pl-4 space-y-1">
+            <li>In Mi Fitness, open Profile → Add accounts → Google Fit, sign in.</li>
+            <li>Come back here and tap Connect Google Fit.</li>
+            <li>Aurora will sync the last 7 days and refresh on demand.</li>
+          </ol>
+        </div>
+        <button
+          onClick={() => sonnerToast.info("Google Fit sync setup is coming — your developer needs to add Google OAuth credentials before this can be enabled.")}
+          className="mt-3 w-full md:w-auto bg-success/30 text-success-foreground/80 px-4 py-3 min-h-[48px] rounded-xl text-sm font-semibold inline-flex items-center justify-center gap-2 cursor-not-allowed"
+        >
+          <Activity className="size-4" /> Connect Google Fit — Setup required
+        </button>
+      </div>
+
       {/* History */}
       <div className="glass rounded-3xl p-5 md:p-6">
         <h2 className="font-display font-semibold text-lg mb-4">History</h2>
