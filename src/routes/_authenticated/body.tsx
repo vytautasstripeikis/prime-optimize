@@ -9,6 +9,10 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianG
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { safeErrorMessage } from "@/lib/safe-error";
+import { useProfile } from "@/lib/profile-hooks";
+import { computeDailyNeeds } from "@/lib/needs";
+import { Activity, Flame, Droplet } from "lucide-react";
+import { toast as sonnerToast } from "sonner";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/_authenticated/body")({
@@ -38,6 +42,7 @@ function BodyPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const { data: profile } = useProfile();
 
   const { data: logs = [] } = useQuery({
     queryKey: ["body_logs", user?.id],
@@ -49,6 +54,8 @@ function BodyPage() {
       return (data ?? []) as BodyLog[];
     },
   });
+
+  const needs = computeDailyNeeds(profile, logs);
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
