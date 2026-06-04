@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import {
-  LayoutDashboard, ListTodo, Sparkles, LogOut, Trophy, User, Dumbbell, Apple,
+  LayoutDashboard, ListTodo, Sparkles, LogOut, Trophy, User, Dumbbell,
   HeartPulse, Menu, Moon, Ruler,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -16,7 +16,6 @@ const nav = [
   { to: "/wellness", label: "Sleep", icon: Moon },
   { to: "/coach", label: "AI Coach", icon: Sparkles },
   { to: "/goals", label: "Goals", icon: Trophy },
-  { to: "/nutrition", label: "Nutrition", icon: Apple },
   { to: "/body", label: "Body", icon: Ruler },
   { to: "/profile", label: "Profile", icon: User },
 ] as const;
