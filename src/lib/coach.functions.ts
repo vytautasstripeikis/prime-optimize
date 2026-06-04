@@ -9,18 +9,18 @@ async function buildUserContext(supabase: any, userId: string) {
 
   const [
     { data: profile }, { data: tasks }, { data: goals },
-    { data: workouts }, { data: foods }, { data: water },
+    { data: workouts },
     { data: sleep }, { data: moods }, { data: exercises },
+    { data: bodyLogs },
   ] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
     supabase.from("tasks").select("title, priority, completed, due_date, recurrence, last_completed_date").order("created_at", { ascending: false }).limit(40),
     supabase.from("goals").select("title, timeframe, priority, progress, status, target_date").eq("status", "active").limit(20),
     supabase.from("workouts").select("name, type, intensity, duration_minutes, calories_burned, performed_on").gte("performed_on", fourWksAgo).order("performed_on", { ascending: false }),
-    supabase.from("food_logs").select("name, meal, calories, protein_g, carbs_g, fat_g, servings, logged_on").gte("logged_on", sevenDaysAgo).order("logged_on", { ascending: false }),
-    supabase.from("water_logs").select("amount_ml, logged_on").gte("logged_on", sevenDaysAgo),
     supabase.from("sleep_logs").select("slept_on, duration_hours, quality, bedtime, wake_time").gte("slept_on", sevenDaysAgo).order("slept_on", { ascending: false }),
     supabase.from("mood_logs").select("logged_at, mood, energy, stress, tags").gte("logged_at", new Date(Date.now() - 7 * 86400000).toISOString()).order("logged_at", { ascending: false }),
     supabase.from("workout_exercises").select("primary_muscle, secondary_muscles, sets, workouts!inner(performed_on)").gte("workouts.performed_on", fourWksAgo),
+    supabase.from("body_logs").select("weight_kg, logged_on").order("logged_on", { ascending: false }).limit(30),
   ]);
 
   // Compute muscle volume (last 28d, weekly)
@@ -64,9 +64,10 @@ async function buildUserContext(supabase: any, userId: string) {
   const dailyScore = Math.round(habitsPct * 0.35 + sleepScore * 0.25 + (workoutToday ? 20 : 0) + tasksPct * 0.20);
 
   const p = (profile ?? {}) as Record<string, unknown>;
-  const profileBlock = profile ? `Name: ${p.full_name ?? p.display_name ?? "User"} | Age: ${p.age ?? "?"} | Sex: ${p.gender ?? "?"} | ${p.height_cm ?? "?"}cm / ${p.weight_kg ?? "?"}kg
+  const latestWeight = ((bodyLogs ?? []) as any[]).find((b) => b.weight_kg != null)?.weight_kg ?? null;
+  const profileBlock = profile ? `Name: ${p.full_name ?? p.display_name ?? "User"} | Age: ${p.age ?? "?"} | Sex: ${p.gender ?? "?"} | ${p.height_cm ?? "?"}cm / ${latestWeight ?? "?"}kg
 Fitness level: ${p.fitness_level ?? "?"} | Activity: ${p.activity_level ?? "?"}
-Targets: ${p.sleep_goal_hours ?? "?"}h sleep, ${p.water_goal_ml ?? "?"}ml water, ${p.calorie_goal ?? "?"} kcal
+Targets: ${p.sleep_goal_hours ?? "?"}h sleep (calorie + water needs are auto-computed by the app from body data)
 Stress ${p.stress_level ?? "?"}/10 | Productivity ${p.productivity_level ?? "?"}/10
 Motivation style: ${p.motivation_style ?? "?"} | Personality: ${p.personality_style ?? "?"}
 Allergies: ${p.allergies ?? "none"} | Injuries: ${p.injuries ?? "none"}
