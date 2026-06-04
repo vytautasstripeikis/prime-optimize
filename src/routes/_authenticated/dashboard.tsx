@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import {
-  Repeat, ListTodo, Sparkles, CheckCircle2, Dumbbell, Apple,
+  Repeat, ListTodo, Sparkles, CheckCircle2, Dumbbell,
   Droplet, Flame, Moon, Target, AlertTriangle, Calendar, Loader2,
 } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Cell } from "recharts";
@@ -14,6 +14,7 @@ import { useProfile } from "@/lib/profile-hooks";
 import { scoreStatus, STATUS_HEX, STATUS_TEXT, sleepStatus } from "@/lib/score";
 import { getTodaysPlan } from "@/lib/coach.functions";
 import { getDailyTip } from "@/lib/coach.functions";
+import { computeDailyNeeds } from "@/lib/needs";
 import { useState } from "react";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -48,19 +49,19 @@ function Dashboard() {
   const { data } = useQuery({
     queryKey: ["dashboard", user?.id],
     queryFn: async () => {
-      const [tasksR, completionsR, workoutsR, foodsR, waterR, goalsR, sleepR] = await Promise.all([
+      const [tasksR, completionsR, workoutsR, goalsR, sleepR, bodyR] = await Promise.all([
         supabase.from("tasks").select("*").order("created_at", { ascending: false }).limit(300),
         supabase.from("task_completions").select("task_id, completed_on").gte("completed_on", since14),
         supabase.from("workouts").select("id, name, performed_on, duration_minutes, calories_burned").gte("performed_on", since14),
-        supabase.from("food_logs").select("calories, protein_g, servings, logged_on").gte("logged_on", today),
-        supabase.from("water_logs").select("amount_ml, logged_on").gte("logged_on", today),
         supabase.from("goals").select("title, progress, status"),
         supabase.from("sleep_logs").select("slept_on, duration_hours, quality").gte("slept_on", since14),
+        supabase.from("body_logs").select("weight_kg, logged_on").order("logged_on", { ascending: false }).limit(30),
       ]);
       return {
         tasks: tasksR.data ?? [], completions: completionsR.data ?? [],
-        workouts: workoutsR.data ?? [], foods: foodsR.data ?? [], water: waterR.data ?? [],
+        workouts: workoutsR.data ?? [],
         goals: goalsR.data ?? [], sleep: sleepR.data ?? [],
+        body: bodyR.data ?? [],
       };
     },
   });
@@ -78,6 +79,10 @@ function Dashboard() {
 
   const oneOffs = tasks.filter((t) => t.recurrence === "none");
   const openTasks = oneOffs.filter((t) => !t.completed);
+  const completedToday = oneOffs.filter(
+    (t) => t.completed && typeof t.completed_at === "string" && t.completed_at.slice(0, 10) === today,
+  );
+  const visibleTasks = [...openTasks, ...completedToday];
   const doneTasks = oneOffs.filter((t) => t.completed).length;
   const tasksPct = (doneTasks + openTasks.length) > 0
     ? Math.round((doneTasks / (doneTasks + openTasks.length)) * 100) : 100;
@@ -110,12 +115,7 @@ function Dashboard() {
     return { date: format(d, "EEE"), score, _status: scoreStatus(score) };
   });
 
-  const foodsToday = (data?.foods ?? []);
-  const waterToday = (data?.water ?? []).reduce((s, w) => s + w.amount_ml, 0);
-  const calToday = foodsToday.reduce((s, f) => s + f.calories * Number(f.servings), 0);
-  const proteinToday = foodsToday.reduce((s, f) => s + Number(f.protein_g) * Number(f.servings), 0);
-  const waterGoal = profile?.water_goal_ml ?? 2500;
-  const calorieGoal = profile?.calorie_goal ?? 2200;
+  const needs = computeDailyNeeds(profile, data?.body);
 
   // Weekly report (Sunday only)
   const week7 = weekTrend;
@@ -146,7 +146,9 @@ function Dashboard() {
 
   const completeTask = useMutation({
     mutationFn: async (taskId: string) => {
-      const { error } = await supabase.from("tasks").update({ completed: true }).eq("id", taskId);
+      const { error } = await supabase.from("tasks")
+        .update({ completed: true, completed_at: new Date().toISOString() })
+        .eq("id", taskId);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard"] }),
@@ -231,12 +233,12 @@ function Dashboard() {
 
       {/* Quick health tiles */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <QuickTile to="/nutrition" label="Calories" icon={Flame}
-          primary={`${Math.round(calToday)}`} secondary={`${Math.round(proteinToday)}g protein`}
-          progress={Math.min(100, (calToday / calorieGoal) * 100)} />
-        <QuickTile to="/nutrition" label="Water" icon={Droplet}
-          primary={`${waterToday}`} suffix=" ml" secondary={`Goal ${waterGoal}ml`}
-          progress={Math.min(100, (waterToday / waterGoal) * 100)} />
+        <QuickTile to="/body" label="Calories" icon={Flame}
+          primary={needs.calories != null ? `${needs.calories}` : "—"}
+          secondary="Auto target / day" />
+        <QuickTile to="/body" label="Water" icon={Droplet}
+          primary={needs.waterMl != null ? `${needs.waterMl}` : "—"} suffix=" ml"
+          secondary="Auto target / day" />
         <QuickTile to="/workouts" label="Workouts" icon={Dumbbell}
           primary={`${workoutsAll.filter((w) => w.performed_on === today).length}`}
           secondary={workoutToday ? "Today done" : "None yet"} />
@@ -269,17 +271,22 @@ function Dashboard() {
         </Panel>
 
         <Panel title="Open Tasks">
-          {openTasks.length === 0 ? (
+          {visibleTasks.length === 0 ? (
             <Empty>All clear ✨</Empty>
           ) : (
             <div className="space-y-2">
-              {openTasks.slice(0, 5).map((t) => (
-                <button key={t.id} onClick={() => completeTask.mutate(t.id)}
-                  className="w-full flex items-center gap-3 py-2 px-2 min-h-[48px] rounded-xl hover:bg-white/5 transition text-left">
-                  <span className="size-6 rounded-lg grid place-items-center shrink-0 border-2 border-success/60 hover:border-success hover:bg-success/10" />
-                  <span className="flex-1 text-sm truncate">{t.title}</span>
-                </button>
-              ))}
+              {visibleTasks.slice(0, 8).map((t) => {
+                const done = !!t.completed;
+                return (
+                  <button key={t.id} onClick={() => !done && completeTask.mutate(t.id)} disabled={done}
+                    className={`w-full flex items-center gap-3 py-2 px-2 min-h-[48px] rounded-xl text-left transition ${done ? "opacity-60" : "hover:bg-white/5"}`}>
+                    <span className={`size-6 rounded-lg grid place-items-center shrink-0 transition ${done ? "bg-success" : "border-2 border-success/60 hover:border-success hover:bg-success/10"}`}>
+                      {done && <CheckCircle2 className="size-3.5 text-success-foreground" />}
+                    </span>
+                    <span className={`flex-1 text-sm truncate ${done ? "line-through text-muted-foreground" : ""}`}>{t.title}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
         </Panel>

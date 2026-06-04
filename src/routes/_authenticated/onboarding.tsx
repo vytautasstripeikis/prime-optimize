@@ -17,7 +17,6 @@ type Form = {
   age: string;
   gender: string;
   height_cm: string;
-  weight_kg: string;
   fitness_level: string;
   activity_level: string;
   workout_preferences: string[];
@@ -40,7 +39,7 @@ type Form = {
 };
 
 const initial: Form = {
-  full_name: "", age: "", gender: "", height_cm: "", weight_kg: "",
+  full_name: "", age: "", gender: "", height_cm: "",
   fitness_level: "intermediate", activity_level: "moderate",
   workout_preferences: [], diet_preferences: [],
   allergies: "", injuries: "",
@@ -94,10 +93,8 @@ function OnboardingPage() {
       subtitle: "Helps the AI calibrate workout and recovery advice.",
       render: (
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Height (cm)"><input className={inputCls} type="number" value={form.height_cm} onChange={(e) => set("height_cm", e.target.value)} /></Field>
-            <Field label="Weight (kg)"><input className={inputCls} type="number" value={form.weight_kg} onChange={(e) => set("weight_kg", e.target.value)} /></Field>
-          </div>
+          <Field label="Height (cm)"><input className={inputCls} type="number" value={form.height_cm} onChange={(e) => set("height_cm", e.target.value)} /></Field>
+          <p className="text-xs text-muted-foreground">Log your weight anytime in the Body tab — Aurora uses it to auto-calculate your calorie and water targets.</p>
           <Field label="Fitness level">
             <PillGroup options={["beginner", "intermediate", "advanced", "elite"]} value={form.fitness_level} onChange={(v) => set("fitness_level", v)} />
           </Field>
@@ -174,7 +171,6 @@ function OnboardingPage() {
         age: num(form.age) as number | null,
         gender: form.gender || null,
         height_cm: num(form.height_cm),
-        weight_kg: num(form.weight_kg),
         fitness_level: form.fitness_level,
         activity_level: form.activity_level,
         workout_preferences: form.workout_preferences,

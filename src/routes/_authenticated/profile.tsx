@@ -61,11 +61,10 @@ function ProfilePage() {
       </Section>
 
       <Section title="Body & fitness">
-        <Grid cols={3}>
+        <Grid cols={2}>
           <Field label="Height (cm)"><Input type="number" value={form.height_cm?.toString() ?? ""} onChange={(v) => set("height_cm", num(v))} /></Field>
-          <Field label="Weight (kg)"><Input type="number" value={form.weight_kg?.toString() ?? ""} onChange={(v) => set("weight_kg", num(v))} /></Field>
-          <Field label="Body fat %"><Input type="number" value={form.body_fat_pct?.toString() ?? ""} onChange={(v) => set("body_fat_pct", num(v))} /></Field>
         </Grid>
+        <p className="text-xs text-muted-foreground">Weight is tracked in the Body tab. Calorie and water targets are auto-calculated from your latest body data.</p>
         <Grid cols={2}>
           <Field label="Fitness level"><Select value={form.fitness_level ?? ""} onChange={(v) => set("fitness_level", v)} options={["beginner", "intermediate", "advanced", "elite"]} /></Field>
           <Field label="Activity level"><Select value={form.activity_level ?? ""} onChange={(v) => set("activity_level", v)} options={["sedentary", "light", "moderate", "active", "very active"]} /></Field>
@@ -77,8 +76,6 @@ function ProfilePage() {
           <Field label="Sleep start"><Input type="time" value={(form.sleep_start as string | null) ?? ""} onChange={(v) => set("sleep_start", v || null)} /></Field>
           <Field label="Wake up"><Input type="time" value={(form.sleep_end as string | null) ?? ""} onChange={(v) => set("sleep_end", v || null)} /></Field>
           <Field label="Sleep goal (h)"><Input type="number" step="0.5" value={form.sleep_goal_hours?.toString() ?? ""} onChange={(v) => set("sleep_goal_hours", num(v))} /></Field>
-          <Field label="Water (ml)"><Input type="number" step="100" value={form.water_goal_ml?.toString() ?? ""} onChange={(v) => set("water_goal_ml", num(v) as number | null)} /></Field>
-          <Field label="Calories"><Input type="number" step="50" value={form.calorie_goal?.toString() ?? ""} onChange={(v) => set("calorie_goal", num(v) as number | null)} /></Field>
         </Grid>
       </Section>
 
