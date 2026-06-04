@@ -14,6 +14,7 @@ import { useProfile } from "@/lib/profile-hooks";
 import { scoreStatus, STATUS_HEX, STATUS_TEXT, sleepStatus } from "@/lib/score";
 import { getTodaysPlan } from "@/lib/coach.functions";
 import { getDailyTip } from "@/lib/coach.functions";
+import { computeDailyNeeds } from "@/lib/needs";
 import { useState } from "react";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -48,19 +49,19 @@ function Dashboard() {
   const { data } = useQuery({
     queryKey: ["dashboard", user?.id],
     queryFn: async () => {
-      const [tasksR, completionsR, workoutsR, foodsR, waterR, goalsR, sleepR] = await Promise.all([
+      const [tasksR, completionsR, workoutsR, goalsR, sleepR, bodyR] = await Promise.all([
         supabase.from("tasks").select("*").order("created_at", { ascending: false }).limit(300),
         supabase.from("task_completions").select("task_id, completed_on").gte("completed_on", since14),
         supabase.from("workouts").select("id, name, performed_on, duration_minutes, calories_burned").gte("performed_on", since14),
-        supabase.from("food_logs").select("calories, protein_g, servings, logged_on").gte("logged_on", today),
-        supabase.from("water_logs").select("amount_ml, logged_on").gte("logged_on", today),
         supabase.from("goals").select("title, progress, status"),
         supabase.from("sleep_logs").select("slept_on, duration_hours, quality").gte("slept_on", since14),
+        supabase.from("body_logs").select("weight_kg, logged_on").order("logged_on", { ascending: false }).limit(30),
       ]);
       return {
         tasks: tasksR.data ?? [], completions: completionsR.data ?? [],
-        workouts: workoutsR.data ?? [], foods: foodsR.data ?? [], water: waterR.data ?? [],
+        workouts: workoutsR.data ?? [],
         goals: goalsR.data ?? [], sleep: sleepR.data ?? [],
+        body: bodyR.data ?? [],
       };
     },
   });
@@ -78,6 +79,10 @@ function Dashboard() {
 
   const oneOffs = tasks.filter((t) => t.recurrence === "none");
   const openTasks = oneOffs.filter((t) => !t.completed);
+  const completedToday = oneOffs.filter(
+    (t) => t.completed && typeof t.completed_at === "string" && t.completed_at.slice(0, 10) === today,
+  );
+  const visibleTasks = [...openTasks, ...completedToday];
   const doneTasks = oneOffs.filter((t) => t.completed).length;
   const tasksPct = (doneTasks + openTasks.length) > 0
     ? Math.round((doneTasks / (doneTasks + openTasks.length)) * 100) : 100;
@@ -110,12 +115,7 @@ function Dashboard() {
     return { date: format(d, "EEE"), score, _status: scoreStatus(score) };
   });
 
-  const foodsToday = (data?.foods ?? []);
-  const waterToday = (data?.water ?? []).reduce((s, w) => s + w.amount_ml, 0);
-  const calToday = foodsToday.reduce((s, f) => s + f.calories * Number(f.servings), 0);
-  const proteinToday = foodsToday.reduce((s, f) => s + Number(f.protein_g) * Number(f.servings), 0);
-  const waterGoal = profile?.water_goal_ml ?? 2500;
-  const calorieGoal = profile?.calorie_goal ?? 2200;
+  const needs = computeDailyNeeds(profile, data?.body);
 
   // Weekly report (Sunday only)
   const week7 = weekTrend;
