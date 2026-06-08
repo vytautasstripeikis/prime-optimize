@@ -78,14 +78,19 @@ function Dashboard() {
   const habitsAtRisk = recurring.filter((t) => t.last_completed_date !== today);
 
   const oneOffs = tasks.filter((t) => t.recurrence === "none");
-  const openTasks = oneOffs.filter((t) => !t.completed);
-  const completedToday = oneOffs.filter(
-    (t) => t.completed && typeof t.completed_at === "string" && t.completed_at.slice(0, 10) === today,
-  );
+  const dueTodayOneOffs = oneOffs.filter((t) => {
+    if (!t.completed) return true;
+    // Keep completed ones visible only for the current day.
+    return typeof t.completed_at === "string" && t.completed_at.slice(0, 10) === today;
+  });
+  const openTasks = dueTodayOneOffs.filter((t) => !t.completed);
+  const completedToday = dueTodayOneOffs.filter((t) => t.completed);
   const visibleTasks = [...openTasks, ...completedToday];
-  const doneTasks = oneOffs.filter((t) => t.completed).length;
-  const tasksPct = (doneTasks + openTasks.length) > 0
-    ? Math.round((doneTasks / (doneTasks + openTasks.length)) * 100) : 100;
+  const todayTotal = visibleTasks.length;
+  const todayDone = completedToday.length;
+  const todayPct = todayTotal > 0 ? Math.round((todayDone / todayTotal) * 100) : 0;
+  const tasksPct = todayTotal > 0 ? todayPct : 100;
+  const todayBarStatus = scoreStatus(todayPct);
 
   const sleepToday = sleep.find((s) => s.slept_on === today);
   const sleepHoursToday = Number(sleepToday?.duration_hours ?? 0);
@@ -164,6 +169,9 @@ function Dashboard() {
         <p className="text-muted-foreground mt-1">Here's how today is shaping up.</p>
       </motion.div>
 
+      {/* AI Daily Tip — compact strip at the top */}
+      <DailyTipStrip />
+
       {/* Daily Score hero + breakdown */}
       <div className="grid lg:grid-cols-3 gap-4 md:gap-6">
         <DailyScoreRing score={dailyScore} status={status} />
@@ -179,9 +187,6 @@ function Dashboard() {
 
       {/* AI Today's Plan */}
       <TodaysPlanCard />
-
-      {/* AI Daily Tip */}
-      <DailyTipStrip />
 
       {/* Weekly performance graph */}
       <Panel title="Weekly Performance">
@@ -249,7 +254,7 @@ function Dashboard() {
 
       {/* Today's routines & open tasks */}
       <div className="grid lg:grid-cols-3 gap-6">
-        <Panel className="lg:col-span-2" title="Today's Routines" right={<Link to="/tasks" className="text-xs text-success">Manage →</Link>}>
+        <Panel className="lg:col-span-2" title="Routines" right={<Link to="/tasks" className="text-xs text-success">Manage →</Link>}>
           {recurring.length === 0 ? (
             <Empty>No routines for today. <Link to="/tasks" className="text-success">Create one →</Link></Empty>
           ) : (
@@ -270,7 +275,8 @@ function Dashboard() {
           )}
         </Panel>
 
-        <Panel title="Open Tasks">
+        <Panel title="Today's Tasks">
+          <TodayTasksProgress done={todayDone} total={todayTotal} pct={todayPct} status={todayBarStatus} />
           {visibleTasks.length === 0 ? (
             <Empty>All clear ✨</Empty>
           ) : (
@@ -433,6 +439,33 @@ function Panel({ title, right, className = "", children }: { title: string; righ
 
 function Empty({ children }: { children: React.ReactNode }) {
   return <div className="text-sm text-muted-foreground text-center py-6">{children}</div>;
+}
+
+function TodayTasksProgress({ done, total, pct, status }: {
+  done: number; total: number; pct: number; status: "good" | "warn" | "bad";
+}) {
+  if (total === 0) return null;
+  const allDone = done === total;
+  const color = allDone ? STATUS_HEX.good : STATUS_HEX[status];
+  return (
+    <div className="mb-3 -mt-1">
+      <div className="flex items-center justify-between text-[11px] mb-1">
+        <span className="text-muted-foreground">Progress</span>
+        <span style={{ color }} className="font-medium">
+          {allDone ? "All done ✓" : `${done} / ${total} done`}
+        </span>
+      </div>
+      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.5 }}
+          className="h-full"
+          style={{ background: color }}
+        />
+      </div>
+    </div>
+  );
 }
 
 function TodaysPlanCard() {

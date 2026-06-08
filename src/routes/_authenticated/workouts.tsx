@@ -111,13 +111,15 @@ function WorkoutsPage() {
     const primaryCounts: Record<string, number> = {};
     const secondaryCounts: Record<string, number> = {};
     for (const ex of workoutExercises) {
-      const sets = ex.sets ?? 1;
+      // Each row in workout_exercises represents ONE set (set_number is per row).
+      // Count 1 per row so totals match real sets performed.
+      const setsContribution = 1;
       const primary = ex.primary_muscle ?? (ex.exercise_key ? EXERCISES_BY_KEY[ex.exercise_key]?.primary : null);
       const secondaries = (ex.secondary_muscles && ex.secondary_muscles.length > 0)
         ? ex.secondary_muscles
         : (ex.exercise_key ? EXERCISES_BY_KEY[ex.exercise_key]?.secondary ?? [] : []);
-      if (primary) primaryCounts[primary] = (primaryCounts[primary] ?? 0) + sets;
-      for (const s of secondaries) secondaryCounts[s] = (secondaryCounts[s] ?? 0) + sets;
+      if (primary) primaryCounts[primary] = (primaryCounts[primary] ?? 0) + setsContribution;
+      for (const s of secondaries) secondaryCounts[s] = (secondaryCounts[s] ?? 0) + setsContribution;
     }
     // weekly = total / 4 (28d window)
     const weekly = (m: Record<string, number>) =>
