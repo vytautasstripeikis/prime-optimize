@@ -254,7 +254,7 @@ function Dashboard() {
 
       {/* Today's routines & open tasks */}
       <div className="grid lg:grid-cols-3 gap-6">
-        <Panel className="lg:col-span-2" title="Today's Routines" right={<Link to="/tasks" className="text-xs text-success">Manage →</Link>}>
+        <Panel className="lg:col-span-2" title="Routines" right={<Link to="/tasks" className="text-xs text-success">Manage →</Link>}>
           {recurring.length === 0 ? (
             <Empty>No routines for today. <Link to="/tasks" className="text-success">Create one →</Link></Empty>
           ) : (
@@ -275,7 +275,8 @@ function Dashboard() {
           )}
         </Panel>
 
-        <Panel title="Open Tasks">
+        <Panel title="Today's Tasks">
+          <TodayTasksProgress done={todayDone} total={todayTotal} pct={todayPct} status={todayBarStatus} />
           {visibleTasks.length === 0 ? (
             <Empty>All clear ✨</Empty>
           ) : (
