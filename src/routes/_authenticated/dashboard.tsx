@@ -78,14 +78,19 @@ function Dashboard() {
   const habitsAtRisk = recurring.filter((t) => t.last_completed_date !== today);
 
   const oneOffs = tasks.filter((t) => t.recurrence === "none");
-  const openTasks = oneOffs.filter((t) => !t.completed);
-  const completedToday = oneOffs.filter(
-    (t) => t.completed && typeof t.completed_at === "string" && t.completed_at.slice(0, 10) === today,
-  );
+  const dueTodayOneOffs = oneOffs.filter((t) => {
+    if (!t.completed) return true;
+    // Keep completed ones visible only for the current day.
+    return typeof t.completed_at === "string" && t.completed_at.slice(0, 10) === today;
+  });
+  const openTasks = dueTodayOneOffs.filter((t) => !t.completed);
+  const completedToday = dueTodayOneOffs.filter((t) => t.completed);
   const visibleTasks = [...openTasks, ...completedToday];
-  const doneTasks = oneOffs.filter((t) => t.completed).length;
-  const tasksPct = (doneTasks + openTasks.length) > 0
-    ? Math.round((doneTasks / (doneTasks + openTasks.length)) * 100) : 100;
+  const todayTotal = visibleTasks.length;
+  const todayDone = completedToday.length;
+  const todayPct = todayTotal > 0 ? Math.round((todayDone / todayTotal) * 100) : 0;
+  const tasksPct = todayTotal > 0 ? todayPct : 100;
+  const todayBarStatus = scoreStatus(todayPct);
 
   const sleepToday = sleep.find((s) => s.slept_on === today);
   const sleepHoursToday = Number(sleepToday?.duration_hours ?? 0);
