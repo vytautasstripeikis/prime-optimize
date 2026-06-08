@@ -174,7 +174,7 @@ function WorkoutsPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="font-display font-semibold text-lg">Body Muscle Map</h2>
-            <p className="text-xs text-muted-foreground">Coverage over the last 4 weeks vs target volume.</p>
+            <p className="text-xs text-muted-foreground">All-time coverage, averaged per week. Updates with every workout.</p>
           </div>
           <Sparkles className="size-4 text-success" />
         </div>
