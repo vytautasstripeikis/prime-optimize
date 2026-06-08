@@ -169,6 +169,9 @@ function Dashboard() {
         <p className="text-muted-foreground mt-1">Here's how today is shaping up.</p>
       </motion.div>
 
+      {/* AI Daily Tip — compact strip at the top */}
+      <DailyTipStrip />
+
       {/* Daily Score hero + breakdown */}
       <div className="grid lg:grid-cols-3 gap-4 md:gap-6">
         <DailyScoreRing score={dailyScore} status={status} />
@@ -184,9 +187,6 @@ function Dashboard() {
 
       {/* AI Today's Plan */}
       <TodaysPlanCard />
-
-      {/* AI Daily Tip */}
-      <DailyTipStrip />
 
       {/* Weekly performance graph */}
       <Panel title="Weekly Performance">
