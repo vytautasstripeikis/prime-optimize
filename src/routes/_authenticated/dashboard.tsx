@@ -441,6 +441,33 @@ function Empty({ children }: { children: React.ReactNode }) {
   return <div className="text-sm text-muted-foreground text-center py-6">{children}</div>;
 }
 
+function TodayTasksProgress({ done, total, pct, status }: {
+  done: number; total: number; pct: number; status: "good" | "warn" | "bad";
+}) {
+  if (total === 0) return null;
+  const allDone = done === total;
+  const color = allDone ? STATUS_HEX.good : STATUS_HEX[status];
+  return (
+    <div className="mb-3 -mt-1">
+      <div className="flex items-center justify-between text-[11px] mb-1">
+        <span className="text-muted-foreground">Progress</span>
+        <span style={{ color }} className="font-medium">
+          {allDone ? "All done ✓" : `${done} / ${total} done`}
+        </span>
+      </div>
+      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.5 }}
+          className="h-full"
+          style={{ background: color }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function TodaysPlanCard() {
   const fetchPlan = useServerFn(getTodaysPlan);
   const [plan, setPlan] = useState<string | null>(null);
