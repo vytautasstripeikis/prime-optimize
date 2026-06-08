@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Dumbbell, Flame, Clock, Trash2, Activity, Search, X, Sparkles } from "lucide-react";
-import { format, parseISO, subDays } from "date-fns";
+import { format, parseISO, differenceInCalendarDays } from "date-fns";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -83,13 +83,14 @@ function WorkoutsPage() {
   const { data: workoutExercises = [] } = useQuery({
     queryKey: ["workout_exercises", user?.id],
     queryFn: async () => {
-      const since = format(subDays(new Date(), 27), "yyyy-MM-dd");
+      // Pull every set the user has logged (RLS scopes to current user) plus
+      // the parent workout's performed_on so we can normalize per training week.
       const { data, error } = await supabase
         .from("workout_exercises")
-        .select("id, workout_id, exercise_key, custom_name, primary_muscle, secondary_muscles, sets, reps, weight_kg, duration_seconds, workouts!inner(performed_on)")
-        .gte("workouts.performed_on", since);
+        .select("id, workout_id, exercise_key, custom_name, primary_muscle, secondary_muscles, sets, reps, weight_kg, duration_seconds, workouts(performed_on)")
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as unknown as (WorkoutExercise & { workouts: { performed_on: string } })[];
+      return (data ?? []) as unknown as (WorkoutExercise & { workouts: { performed_on: string } | null })[];
     },
   });
 
@@ -106,13 +107,16 @@ function WorkoutsPage() {
     onError: (e) => toast.error(safeErrorMessage(e)),
   });
 
-  // ===== muscle volume aggregation (last 28d, weeklyized) =====
+  // ===== muscle volume aggregation =====
+  // All-time totals normalized by the number of weeks since the user's first
+  // logged workout. Every new workout shifts the average, so the map gets
+  // more accurate over time instead of resetting on a rolling 28-day window.
   const muscleData = useMemo(() => {
     const primaryCounts: Record<string, number> = {};
     const secondaryCounts: Record<string, number> = {};
+    let earliest: Date | null = null;
     for (const ex of workoutExercises) {
-      // Each row in workout_exercises represents ONE set (set_number is per row).
-      // Count 1 per row so totals match real sets performed.
+      // Each row in workout_exercises represents ONE set.
       const setsContribution = 1;
       const primary = ex.primary_muscle ?? (ex.exercise_key ? EXERCISES_BY_KEY[ex.exercise_key]?.primary : null);
       const secondaries = (ex.secondary_muscles && ex.secondary_muscles.length > 0)
@@ -120,10 +124,17 @@ function WorkoutsPage() {
         : (ex.exercise_key ? EXERCISES_BY_KEY[ex.exercise_key]?.secondary ?? [] : []);
       if (primary) primaryCounts[primary] = (primaryCounts[primary] ?? 0) + setsContribution;
       for (const s of secondaries) secondaryCounts[s] = (secondaryCounts[s] ?? 0) + setsContribution;
+      const performedOn = ex.workouts?.performed_on;
+      if (performedOn) {
+        const d = parseISO(performedOn);
+        if (!earliest || d < earliest) earliest = d;
+      }
     }
-    // weekly = total / 4 (28d window)
+    // Weeks of training history (minimum 1 so the first week shows real totals).
+    const daysSpan = earliest ? differenceInCalendarDays(new Date(), earliest) + 1 : 7;
+    const weeks = Math.max(1, daysSpan / 7);
     const weekly = (m: Record<string, number>) =>
-      Object.fromEntries(Object.entries(m).map(([k, v]) => [k, v / 4]));
+      Object.fromEntries(Object.entries(m).map(([k, v]) => [k, v / weeks]));
     return computeMuscleVolumes(weekly(primaryCounts), weekly(secondaryCounts));
   }, [workoutExercises]);
 
@@ -163,7 +174,7 @@ function WorkoutsPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="font-display font-semibold text-lg">Body Muscle Map</h2>
-            <p className="text-xs text-muted-foreground">Coverage over the last 4 weeks vs target volume.</p>
+            <p className="text-xs text-muted-foreground">All-time coverage, averaged per week. Updates with every workout.</p>
           </div>
           <Sparkles className="size-4 text-success" />
         </div>
