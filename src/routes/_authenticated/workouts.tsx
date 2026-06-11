@@ -64,6 +64,16 @@ interface PendingExercise {
   sets: { reps: number; weight: number; duration: number }[];
 }
 
+function exerciseFromLoggedRow(ex: WorkoutExercise) {
+  if (ex.exercise_key && EXERCISES_BY_KEY[ex.exercise_key]) return EXERCISES_BY_KEY[ex.exercise_key];
+  const name = (ex.custom_name ?? "").trim().toLowerCase();
+  if (!name) return undefined;
+  return EXERCISES.find((item) => {
+    const itemName = item.name.toLowerCase();
+    return itemName === name || itemName.includes(name) || name.includes(itemName);
+  });
+}
+
 function WorkoutsPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -96,6 +106,19 @@ function WorkoutsPage() {
     },
   });
 
+  const { data: workoutDates = [] } = useQuery({
+    queryKey: ["workout-dates", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("workouts")
+        .select("id, performed_on")
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      return (data ?? []) as Pick<Workout, "id" | "performed_on">[];
+    },
+  });
+
   const remove = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("workouts").delete().eq("id", id);
@@ -117,14 +140,15 @@ function WorkoutsPage() {
     const primaryCounts: Record<string, number> = {};
     const secondaryCounts: Record<string, number> = {};
     let earliest: Date | null = null;
-    const workoutsById = new Map(workouts.map((w) => [w.id, w]));
+    const workoutsById = new Map(workoutDates.map((w) => [w.id, w]));
     for (const ex of workoutExercises) {
       // Each row in workout_exercises represents ONE set.
       const setsContribution = 1;
-      const primary = ex.primary_muscle ?? (ex.exercise_key ? EXERCISES_BY_KEY[ex.exercise_key]?.primary : null);
+      const matchedExercise = exerciseFromLoggedRow(ex);
+      const primary = ex.primary_muscle ?? matchedExercise?.primary ?? null;
       const secondaries = (ex.secondary_muscles && ex.secondary_muscles.length > 0)
         ? ex.secondary_muscles
-        : (ex.exercise_key ? EXERCISES_BY_KEY[ex.exercise_key]?.secondary ?? [] : []);
+        : (matchedExercise?.secondary ?? []);
       if (primary) primaryCounts[primary] = (primaryCounts[primary] ?? 0) + setsContribution;
       for (const s of secondaries) secondaryCounts[s] = (secondaryCounts[s] ?? 0) + setsContribution;
       const performedOn = workoutsById.get(ex.workout_id)?.performed_on;
@@ -139,7 +163,7 @@ function WorkoutsPage() {
     const weekly = (m: Record<string, number>) =>
       Object.fromEntries(Object.entries(m).map(([k, v]) => [k, v / weeks]));
     return computeMuscleVolumes(weekly(primaryCounts), weekly(secondaryCounts));
-  }, [workoutExercises, workouts]);
+  }, [workoutExercises, workoutDates]);
 
   const today = new Date().toISOString().slice(0, 10);
   const week = workouts.filter((w) => {
