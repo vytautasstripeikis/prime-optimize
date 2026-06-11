@@ -82,15 +82,17 @@ function WorkoutsPage() {
 
   const { data: workoutExercises = [] } = useQuery({
     queryKey: ["workout_exercises", user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
-      // Pull every set the user has logged (RLS scopes to current user) plus
-      // the parent workout's performed_on so we can normalize per training week.
+      // Pull every set the user has logged. Join to workouts in memory below;
+      // the database has no explicit FK relationship for embedded REST joins.
       const { data, error } = await supabase
         .from("workout_exercises")
-        .select("id, workout_id, exercise_key, custom_name, primary_muscle, secondary_muscles, sets, reps, weight_kg, duration_seconds, workouts(performed_on)")
+        .select("id, workout_id, exercise_key, custom_name, primary_muscle, secondary_muscles, sets, reps, weight_kg, duration_seconds")
+        .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as unknown as (WorkoutExercise & { workouts: { performed_on: string } | null })[];
+      return (data ?? []) as WorkoutExercise[];
     },
   });
 
@@ -115,6 +117,7 @@ function WorkoutsPage() {
     const primaryCounts: Record<string, number> = {};
     const secondaryCounts: Record<string, number> = {};
     let earliest: Date | null = null;
+    const workoutsById = new Map(workouts.map((w) => [w.id, w]));
     for (const ex of workoutExercises) {
       // Each row in workout_exercises represents ONE set.
       const setsContribution = 1;
@@ -124,7 +127,7 @@ function WorkoutsPage() {
         : (ex.exercise_key ? EXERCISES_BY_KEY[ex.exercise_key]?.secondary ?? [] : []);
       if (primary) primaryCounts[primary] = (primaryCounts[primary] ?? 0) + setsContribution;
       for (const s of secondaries) secondaryCounts[s] = (secondaryCounts[s] ?? 0) + setsContribution;
-      const performedOn = ex.workouts?.performed_on;
+      const performedOn = workoutsById.get(ex.workout_id)?.performed_on;
       if (performedOn) {
         const d = parseISO(performedOn);
         if (!earliest || d < earliest) earliest = d;
@@ -136,7 +139,7 @@ function WorkoutsPage() {
     const weekly = (m: Record<string, number>) =>
       Object.fromEntries(Object.entries(m).map(([k, v]) => [k, v / weeks]));
     return computeMuscleVolumes(weekly(primaryCounts), weekly(secondaryCounts));
-  }, [workoutExercises]);
+  }, [workoutExercises, workouts]);
 
   const today = new Date().toISOString().slice(0, 10);
   const week = workouts.filter((w) => {
